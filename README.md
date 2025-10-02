@@ -1,0 +1,2 @@
+# BBuzz
+Decentral social platform
