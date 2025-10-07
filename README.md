@@ -1,2 +1,2 @@
 # BBuzz
-Decentral social platform
+Decentral Application with firewall hole-punching

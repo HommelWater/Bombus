@@ -1,0 +1,216 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+.login{
+	background: var(--color-card);
+	width:100%;
+	display: flex;
+	flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+body {
+	margin: 0;
+	font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif';
+	background: var(--color-background);
+	color: var(--color-text);
+	display: flex;
+	justify-content: center;
+	text-align: center;
+	flex-direction: column;
+	width: 100dvw;
+	height: 100dvh;
+}
+
+h1 {
+	color: var(--color-text);
+	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+	font-size: 2.6rem;
+}
+
+p {
+	margin-top: 2px;
+	color: var(--color-text);
+}
+
+.container {
+	width: 100%;
+	min-width: 280px;
+	max-height: 100%;
+	flex: 1;
+	display: flex;
+	min-height: 0;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: auto;
+}
+
+.sidebar {
+	width: 20%;
+	max-width: 250px;
+	background: var(--color-card);
+	margin-right: 5px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+}
+
+.sidebar-item {
+	text-align: left;
+	padding: 10px;
+	margin: 10px;
+	background: var(--color-items);
+	border: 1px solid var(--color-border);
+}
+
+.card {
+	width: 80%;
+	max-width: 1000px;
+	background: var(--color-card);
+	padding: 10px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	overflow: hidden;
+	min-height: 0;
+	flex: 1;
+}
+
+h2 {
+	margin: 0px;
+	color: var(--color-text);
+}
+
+/* chat area: the only scrolling region */
+#chat-window {
+	background: var(--color-items);
+	border: 1px solid var(--color-border);
+	padding: 12px;
+	font-size: 0.95rem;
+	text-align: left;
+	flex: 1;
+	/* take remaining space above the input */
+	overflow-y: auto;
+	/* scroll messages here */
+	min-height: 0;
+	/* ESSENTIAL: prevents flex children from growing past container */
+	border-radius: 0px;
+	color: var(--color-text);
+}
+
+/* message styling helper */
+.chat-message {
+	margin-bottom: 10px;
+	line-height: 1.4;
+}
+
+/* form-group pinned to bottom of card */
+.form-group {
+	display: flex;
+	gap: 10px;
+	align-items: stretch;
+	margin-top: 0;
+	/* don't rely on auto margins — layout governed by flex; chat-window takes available space */
+	flex: none;
+	padding-top: 8px;
+	border-top: 1px solid var(--color-border);
+	background: transparent;
+}
+
+/* textarea grows horizontally and has a comfortable minimum height */
+.form-group textarea,
+textarea {
+	flex: 1;
+	min-height: 72px;
+	resize: vertical;
+	padding: 10px;
+	border: 1px solid var(--color-border);
+	background: var(--color-items);
+	color: var(--color-text);
+	font-size: 0.95rem;
+	border-radius: 0px;
+	margin: 0px;
+}
+
+/* send button */
+.btn {
+	padding: 12px 18px;
+	border: none;
+	cursor: pointer;
+	font-weight: 600;
+	background: var(--color-button);
+	transition: transform .12s ease, opacity .12s ease, background .12s ease;
+	align-self: flex-end;
+	/* keep button aligned to bottom of textarea on larger heights */
+	border-radius: 0px;
+	margin-bottom: auto;
+	margin-top: auto;
+}
+
+.btn:hover {
+	transform: translateY(-2px);
+	background: var(--color-button-h);
+	opacity: 0.98;
+}
+
+/* small screens: full width container and adjusted sizes */
+@media (max-width: 1000px) {
+	.container {
+		width: 100%;
+		padding: 0px;
+		max-height: 100%;
+	}
+
+	h1 {
+		font-size: 1.25rem;
+		padding-top: 2px;
+	}
+
+	p {
+		display: none;
+	}
+
+	.form-group textarea {
+		min-height: 64px;
+	}
+
+	.theme-toggle {
+		width: 40px;
+		height: 40px;
+		top: 12px;
+		right: 12px;
+	}
+
+	.sidebar {
+		display: none;
+	}
+
+	.card {
+		width: 100%;
+		padding-left: 0px;
+		padding-right: 0px
+	}
+}
+
+/* accessibility: focus outlines */
+button:focus,
+textarea:focus {
+	outline: 3px solid rgba(0, 0, 0, 0.08);
+	outline-offset: 2px;
+}
+
+.item_row {
+	background-color: var(--color-card);
+	margin-bottom: 5px;
+	padding: 10px;
+	border-radius: 5px;
+	width: fit-content;
+}
+
+.ai {
+	margin-bottom: 15px;
+}
