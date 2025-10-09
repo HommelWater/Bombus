@@ -9,17 +9,21 @@
     <link rel="stylesheet" href="./styles.css">
     <link rel="stylesheet" href="./webkit.css">
     <link rel="stylesheet" href="./themes.css">
+    <script src="./scripts.js"></script>
+    <script src="./themes.js"></script>
+    <script src="./qr/qrcode.min.js"></script>
     </head>
     <body>
-    <div class="login">
-        <h2 style="padding:10px">Login to Buzz!</h2>
+    <div id="login" class="login">
+        <h2 style="padding:10px">Log in to Buzz!</h2>
         <div class="form-group" style="padding:20px;">
             <input id="login-username" placeholder="Username"></input>
-            <input id="login-totp" placeholder="TOTP code"></input>
-            <button id="login-button" class="btn">Login</button>
+            <input id="login-code" placeholder="Login / Invite Code"></input>
+            <button id="login-button" class="btn">Log in / Sign up</button>
         </div>
+        <div id="qrcode"></div>
     </div>
-    <div class="container" style="display:none;">
+    <div id="container" class="container" style="display:none;">
         <div class="sidebar">
             <div class="sidebar-item">
                 test
@@ -40,7 +44,5 @@
         </div>
         </div>
     </div>
-    <script src="./scripts.js"></script>
-    <script src="./themes.js"></script>
     </body>
 </html>

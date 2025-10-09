@@ -2,20 +2,30 @@ document.addEventListener('DOMContentLoaded', onLoad);
 let socket;
 
 function onLoad() {
-	setupConnection();
+	const session = localStorage.getItem("session");
+	if (session){
+		setupConnection();
+		document.getElementById('container').style.display = "flex";
+		document.getElementById('login').style.display = "none";
+	}
+	document.getElementById('login-button').addEventListener('click', onLoginButton);
 	document.getElementById('send-button').addEventListener('click', sendMessage);
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
+	loadHistory();
 }
 
 async function setupConnection() {
 	socket = new WebSocket('ws://localhost:8000/ws');
 	socket.addEventListener('open', (event) => {
+		const session = localStorage.getItem("session");
+		socket.send(JSON.stringify({"session":session, "msg": 'Hello Server!'}));
 		console.log('Connected to server');
-		socket.send('Hello Server!');
 	});
 
 	socket.addEventListener('message', (event) => {
-		addMessage(event.data)
+		console.log(event.data);
+		data = JSON.parse(event.data);
+		addMessage(data.username, data.msg);
 	});
 	socket.addEventListener('close', (event) => {
 		console.log('Disconnected from server');
@@ -26,13 +36,13 @@ async function setupConnection() {
 	});
 }
 
-async function addMessage(message) {
+async function addMessage(username, message) {
 	const chat_window = document.getElementById("chat-window");
 	if (message.trim() === "") return;
 
 	const message_div = document.createElement("div");
 	message_div.className = "item_row user";
-	message_div.innerHTML = `<div class="left_item">${message}</div>`;
+	message_div.innerHTML = `<div class="left_item">${username}: ${message}</div>`;
 	chat_window.appendChild(message_div);
 
 	chat_window.scrollTop = chat_window.scrollHeight;
@@ -42,7 +52,7 @@ async function addMessage(message) {
 async function sendMessage() {
 	const input = document.getElementById("user-input");
 	if (input.value.trim() === "") return;
-	socket.send(input.value);
+	socket.send(JSON.stringify({"msg":input.value}));
 	input.value = "";
 }
 
@@ -58,3 +68,69 @@ function loadHistory() {
 	const chat_history = localStorage.getItem("chat_history");
 	chat_window.innerHTML = chat_history;
 }
+
+function generateTOTPQRCode(secret, issuer, accountName) {
+	const totpUri = `otpauth://totp/${issuer}:${accountName}?secret=${secret}&issuer=${issuer}`;
+	var qrcode = new QRCode(document.getElementById("qrcode"), {
+		text: totpUri,
+		width: 256,
+		height: 256,
+		colorDark : "#000000",
+		colorLight : "#ffffff",
+		correctLevel : QRCode.CorrectLevel.H
+	});
+}
+
+async function onLoginButton(){
+	const codeDiv = document.getElementById('login-code');
+	const usernameDiv = document.getElementById('login-username');
+	const code = codeDiv.value;
+	const username = usernameDiv.value;
+	if (code.length > 6 || (username == "admin" && code.length == 0)){
+		signup(username, code);
+	} else {
+		login(username, code);
+	}
+	codeDiv.value = "";
+}
+
+async function signup(username, invite_code){
+	const res = await fetch('/signup', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ "username":username, "invite_code":invite_code })
+	});
+	if (!res.ok) {
+		const { error } = await res.json().catch(() => ({}));
+		console.log(error);
+        return;
+	}
+	
+	const data = await res.json();
+	console.log(data);
+	generateTOTPQRCode(data["result"], "Buzz", username);
+}
+
+async function login(username, totp_code){
+	const res = await fetch('/login', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ "username":username, "totp_code":totp_code })
+	});
+	if (!res.ok) {
+		const { error } = await res.json().catch(() => ({}));
+		console.log(error);
+        return;
+	}
+	
+	const data = await res.json();
+	console.log(data);
+	localStorage.setItem("session", data["result"]);
+	if (data["status"] == "success"){
+		setupConnection(); //still authenticate the user using the session token
+		document.getElementById('container').style.display = "flex";
+		document.getElementById('login').style.display = "none";
+	}
+	
+}
+
