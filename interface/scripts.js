@@ -11,7 +11,34 @@ function onLoad() {
 	document.getElementById('login-button').addEventListener('click', onLoginButton);
 	document.getElementById('send-button').addEventListener('click', sendMessage);
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
+	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);
 	loadHistory();
+}
+
+async function addChannel(name, id){
+	const sidebarDiv = document.getElementById("sidebar");
+	const channelDiv = document.createElement("div");
+	channelDiv.className = "sidebar-item";
+    channelDiv.textContent = `${id}-${name}`;
+    channelDiv.dataset.channelId = `channel-${id}`;
+	channelDiv.addEventListener('click', (event)=>{
+		localStorage.setItem("channel", id);
+	})
+	sidebarDiv.appendChild(channelDiv);
+}
+
+function addChannelButton(e){
+	const btn = document.getElementById("add-channel");
+	btn.innerHTML = `
+		<input id="channel-name" style="width:100%; margin-right:5px" placeholder="New channel name"></input>
+		<button id="add-channel-add-button" class="btn">Add</button>
+	`
+	document.getElementById("add-channel-add-button").addEventListener('click', (event) => {
+		const channelName = document.getElementById("channel-name").value;
+		const id = document.getElementById("sidebar").children.length;
+		addChannel(channelName, id);
+		//send a request to add the channel instead.
+	});
 }
 
 async function setupConnection() {
@@ -52,7 +79,8 @@ async function addMessage(username, message) {
 async function sendMessage() {
 	const input = document.getElementById("user-input");
 	if (input.value.trim() === "") return;
-	socket.send(JSON.stringify({"msg":input.value}));
+	const channel = localStorage.getItem("channel", "0");
+	socket.send(JSON.stringify({"channel":channel, "msg":input.value}));
 	input.value = "";
 }
 
@@ -131,6 +159,5 @@ async function login(username, totp_code){
 		document.getElementById('container').style.display = "flex";
 		document.getElementById('login').style.display = "none";
 	}
-	
 }
 

@@ -109,7 +109,7 @@ async def endpoint(websocket: WebSocket):
         while True:
             message = await websocket.receive_json()
             message["username"] = user["username"]
-            #data.add_post(message["user"], message["channel"], message["content"])
+            data.add_post(user["id"], message["channel"], message["content"])
             for c in connections:
                 await c.send_json(message)
     except WebSocketDisconnect:

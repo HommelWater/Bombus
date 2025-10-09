@@ -136,9 +136,15 @@ class DataManager:
             )
             return cursor.rowcount if cursor.rowcount > 0 else None
 
-    def add_post(username, channel, message):
-        pass
-
+    def add_post(self, user_id, channel, content):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO posts (channel, user_id, content) VALUES (?, ?, ?)",
+                (channel, user_id, content)
+            )
+            return cursor.lastrowid
+        
     def get_user(self, username: str) -> Optional[Dict[str, Any]]:
         """Get user data"""
         with sqlite3.connect(self.db_path) as conn:
