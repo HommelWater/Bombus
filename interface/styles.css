@@ -158,31 +158,15 @@ textarea {
 }
 
 /* small screens: full width container and adjusted sizes */
-@media (max-width: 1000px) {
+@media (max-width: 700px) {
 	.container {
 		width: 100%;
 		padding: 0px;
 		max-height: 100%;
 	}
 
-	h1 {
-		font-size: 1.25rem;
-		padding-top: 2px;
-	}
-
-	p {
-		display: none;
-	}
-
 	.form-group textarea {
 		min-height: 64px;
-	}
-
-	.theme-toggle {
-		width: 40px;
-		height: 40px;
-		top: 12px;
-		right: 12px;
 	}
 
 	.sidebar {

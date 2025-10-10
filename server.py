@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from database import DataManager
 import pyotp
 import uuid
+import time
 
 app = FastAPI()
 data = DataManager("data.db")
@@ -24,6 +25,10 @@ class SignupVerifyInfo(BaseModel):
 class InviteInfo(BaseModel):
     session_key: str
     uses: int
+
+class ChannelInfo(BaseModel):
+    session_key: str
+    name: str
 
 @app.get("/")
 async def read_root():
@@ -81,14 +86,39 @@ async def invite(info: InviteInfo):
     
     return {"status":"success", "result":invite_code}
 
+@app.post("/channel")
+async def channel(info: ChannelInfo):
+    session = data.get_session(info.session_key)
+    if session is None:
+        return {"status":"failure", "result":"Could not find session."}
+    
+    if info.name is not None:
+        idx = data.create_channel(info.name)
+        if idx is None:
+            return {"status":"failure", "result":"Could not create channel."}
+    
+    await broadcast({"channels":data.get_channels()})
+    return {"status":"success", "result":idx}
+
 connections = []
 @app.websocket("/ws")
 async def endpoint(websocket: WebSocket):
+    session, user = await setupConnection(websocket)
+    try:
+        while True:
+            message = await websocket.receive_json()
+            message["username"] = user["username"]
+            message["created_at"] = int(time.time())
+            data.add_post(user["id"], message["channel"], message["msg"])
+            await broadcast(message)
+    except WebSocketDisconnect:
+        connections.remove(websocket)    
+
+async def setupConnection(websocket: WebSocket):
     await websocket.accept()
     
     auth_message = await websocket.receive_json()
     session_key = auth_message.get("session")
-    join_msg = auth_message["msg"]
     if not session_key:
         await websocket.send_json({"status": "No session key provided."})
         await websocket.close()
@@ -106,15 +136,12 @@ async def endpoint(websocket: WebSocket):
         await websocket.close()
         return
     connections.append(websocket)
-    try:
-        while True:
-            message = await websocket.receive_json()
-            message["username"] = user["username"]
-            data.add_post(user["id"], message["channel"], message["msg"])
-            for c in connections:
-                await c.send_json(message)
-    except WebSocketDisconnect:
-        connections.remove(websocket)    
+    await websocket.send_json({"channels":data.get_channels()})
+    return session, user
+
+async def broadcast(json):
+    for c in connections:
+        await c.send_json(json)
 
 app.mount("/", StaticFiles(directory="./interface"), name="static")
 

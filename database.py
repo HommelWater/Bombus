@@ -185,3 +185,25 @@ class DataManager:
                     'verified': row[5]
                 }
             return None
+        
+    def create_channel(self, name: str) -> int:
+        """Create a new session"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """INSERT INTO channels (name) 
+                VALUES (?)""",
+                (name,)
+            )
+            return cursor.lastrowid
+        
+    def get_channels(self) -> Optional[Dict[str, Any]]:
+        """Get user data"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM channels",
+                ()
+            )
+            rows = cursor.fetchall()
+            return [{'id': row[0], 'name': row[1]} for row in rows]

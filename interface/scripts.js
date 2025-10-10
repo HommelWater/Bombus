@@ -1,6 +1,16 @@
 document.addEventListener('DOMContentLoaded', onLoad);
 let socket;
 
+function timeIntToString(time){
+	const date = new Date(time * 1000);
+	const day = date.getDate().toString().padStart(2, '0'); 
+	const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
+	const year = date.getFullYear();
+	const hours = date.getHours().toString().padStart(2, '0');
+	const minutes = date.getMinutes().toString().padStart(2, '0');
+	return `${hours}:${minutes} ${day}-${month}-${year}`;
+}
+
 function onLoad() {
 	const session = localStorage.getItem("session");
 	if (session){
@@ -17,15 +27,18 @@ function onLoad() {
 }
 
 function addChannel(name, id){
-	const sidebarDiv = document.getElementById("sidebar");
+	const channelsDiv = document.getElementById("channels");
 	const channelDiv = document.createElement("div");
 	channelDiv.className = "sidebar-item";
     channelDiv.textContent = `${id}-${name}`;
     channelDiv.dataset.channelId = `channel-${id}`;
 	channelDiv.addEventListener('click', (event)=>{
 		localStorage.setItem("channel", id);
-	})
-	sidebarDiv.appendChild(channelDiv);
+	});
+	channelDiv.addEventListener('click', (event)=>{
+
+	});
+	channelsDiv.appendChild(channelDiv);
 }
 
 function addChannelButton(e){
@@ -34,12 +47,25 @@ function addChannelButton(e){
 		<input id="channel-name" style="width:100%; margin-right:5px" placeholder="New channel name"></input>
 		<button id="add-channel-add-button" class="btn">Add</button>
 	`
-	document.getElementById("add-channel-add-button").addEventListener('click', (event) => {
-		const channelName = document.getElementById("channel-name").value;
-		const id = document.getElementById("sidebar").children.length;
-		addChannel(channelName, id);
-		//send a request to add the channel instead.
+	document.getElementById("add-channel-add-button").addEventListener('click', requestNewChannel);
+}
+
+async function requestNewChannel(){
+	const channelName = document.getElementById("channel-name").value;
+	const session = localStorage.getItem("session");
+	const res = await fetch('/channel', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ "session_key":session, "name":channelName })
 	});
+	if (!res.ok) {
+		const { error } = await res.json().catch(() => ({}));
+		console.log(error);
+		return;
+	}
+	
+	const data = await res.json();
+	console.log(data);
 }
 
 async function createInviteCode(){
@@ -72,7 +98,15 @@ async function setupConnection() {
 	socket.addEventListener('message', (event) => {
 		console.log(event.data);
 		data = JSON.parse(event.data);
-		addMessage(data.username, data.msg);
+		if (data.msg){
+			addMessage(data.username, data.msg, data.created_at);
+		}
+		if (data.channels){
+			document.getElementById("channels").innerHTML = "";
+			data.channels.forEach(channel => {
+				addChannel(channel.name, channel.id);
+			});
+		}
 	});
 	socket.addEventListener('close', (event) => {
 		console.log('Disconnected from server');
@@ -83,13 +117,14 @@ async function setupConnection() {
 	});
 }
 
-async function addMessage(username, message) {
+async function addMessage(username, message, created_at) {
 	const chat_window = document.getElementById("chat-window");
 	if (message.trim() === "") return;
-
+	
+	const date = timeIntToString(created_at);
 	const message_div = document.createElement("div");
 	message_div.className = "item_row user";
-	message_div.innerHTML = `<div class="left_item">${username}: ${message}</div>`;
+	message_div.innerHTML = `<div class="left_item"><div style="display:flex;border-bottom:1px solid var(--color-border);min-width:200px;">${username}<div style="margin-left:auto">${date}</div></div><div>${message}<div></div>`;
 	chat_window.appendChild(message_div);
 
 	chat_window.scrollTop = chat_window.scrollHeight;
@@ -175,7 +210,7 @@ async function login(username, totp_code){
 	console.log(data);
 	localStorage.setItem("session", data["result"]);
 	if (data["status"] == "success"){
-		setupConnection(); //still authenticate the user using the session token
+		setupConnection();
 		document.getElementById('container').style.display = "flex";
 		document.getElementById('login').style.display = "none";
 	}
