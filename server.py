@@ -68,13 +68,13 @@ async def signup(info: SignupInfo):
     
     return {"status":"success", "result":totp_secret}
 
-@app.get("/invite")
+@app.post("/invite")
 async def invite(info: InviteInfo):
     session = data.get_session(info.session_key)
     if session is None:
         return {"status":"failure", "result":"Could not find session."}
         
-    invite_code = pyotp.random_hex()
+    invite_code = pyotp.random_hex()[:12]
     idx = data.create_invite_code(invite_code, session["user_id"], info.uses)
     if idx is None:
         return {"status":"failure", "result":"Could not create invite code."}
@@ -88,6 +88,7 @@ async def endpoint(websocket: WebSocket):
     
     auth_message = await websocket.receive_json()
     session_key = auth_message.get("session")
+    join_msg = auth_message["msg"]
     if not session_key:
         await websocket.send_json({"status": "No session key provided."})
         await websocket.close()
@@ -109,7 +110,7 @@ async def endpoint(websocket: WebSocket):
         while True:
             message = await websocket.receive_json()
             message["username"] = user["username"]
-            data.add_post(user["id"], message["channel"], message["content"])
+            data.add_post(user["id"], message["channel"], message["msg"])
             for c in connections:
                 await c.send_json(message)
     except WebSocketDisconnect:

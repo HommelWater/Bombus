@@ -12,10 +12,11 @@ function onLoad() {
 	document.getElementById('send-button').addEventListener('click', sendMessage);
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
 	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);
+	document.getElementById("new-invite-button").addEventListener('click', createInviteCode);
 	loadHistory();
 }
 
-async function addChannel(name, id){
+function addChannel(name, id){
 	const sidebarDiv = document.getElementById("sidebar");
 	const channelDiv = document.createElement("div");
 	channelDiv.className = "sidebar-item";
@@ -28,7 +29,7 @@ async function addChannel(name, id){
 }
 
 function addChannelButton(e){
-	const btn = document.getElementById("add-channel");
+	const btn = document.getElementById("add-channel-item");
 	btn.innerHTML = `
 		<input id="channel-name" style="width:100%; margin-right:5px" placeholder="New channel name"></input>
 		<button id="add-channel-add-button" class="btn">Add</button>
@@ -39,6 +40,25 @@ function addChannelButton(e){
 		addChannel(channelName, id);
 		//send a request to add the channel instead.
 	});
+}
+
+async function createInviteCode(){
+	const session = localStorage.getItem("session");
+	const res = await fetch('/invite', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ "session_key":session, "uses":"1" })
+	});
+	if (!res.ok) {
+		const { error } = await res.json().catch(() => ({}));
+		console.log(error);
+        return;
+	}
+	
+	const data = await res.json();
+	console.log(data);
+	const inviteDiv = document.getElementById("invite-code-item");
+	inviteDiv.innerHTML = `Invite code: ${data["result"]}`;
 }
 
 async function setupConnection() {

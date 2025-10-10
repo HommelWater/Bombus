@@ -69,21 +69,22 @@ class DataManager:
             )
             return cursor.lastrowid
     
-    def get_invite_code(self, code: str) -> bool:
-        """Check if an invite code exists in the database"""
+    def get_invite_code(self, code: str) -> dict | None:
+        """Get an invite code from the database"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT 1 FROM invites WHERE code = ?",
+                "SELECT id, code, inviter_id, uses, created_at, last_used FROM invites WHERE code = ?",
                 (code,)
             )
             row = cursor.fetchone()
+            print(row)
             if row:
                 return {
                     'id': row[0],
                     'code': row[1],
                     'inviter_id': row[2],
-                    'uses':row[3],
+                    'uses': row[3],
                     'created_at': row[4],
                     'last_used': row[5]
                 }
