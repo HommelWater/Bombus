@@ -26,6 +26,10 @@ function onLoad() {
 	loadHistory();
 }
 
+function displayChannel(id){
+
+}
+
 function addChannel(name, id){
 	const channelsDiv = document.getElementById("channels");
 	const channelDiv = document.createElement("div");
@@ -117,18 +121,23 @@ async function setupConnection() {
 	});
 }
 
-async function addMessage(username, message, created_at) {
-	const chat_window = document.getElementById("chat-window");
+async function addMessage(channel, username, message, created_at) {
 	if (message.trim() === "") return;
-	
 	const date = timeIntToString(created_at);
-	const message_div = document.createElement("div");
-	message_div.className = "item_row user";
-	message_div.innerHTML = `<div class="left_item"><div style="display:flex;border-bottom:1px solid var(--color-border);min-width:200px;">${username}<div style="margin-left:auto">${date}</div></div><div>${message}<div></div>`;
-	chat_window.appendChild(message_div);
+	const messageHTML = `<div class="item_row user"><div class="left_item"><div style="display:flex;border-bottom:1px solid var(--color-border);min-width:200px;">${username}<div style="margin-left:auto">${date}</div></div><div>${message}<div></div></div>`;
+	const channelJSON = localStorage.getItem(`channel-history-${channel}`) | ""
+	const channelMessages = JSON.parse(channelJSON);
+	channelMessages.push(messageHTML);
+	if (channelMessages.length > 50){
+		channelMessages.splice(0, 1);
+	}
+	localStorage.setItem(`chat-history-${channel}`, JSON.stringify(channelMessages));
+}
 
-	chat_window.scrollTop = chat_window.scrollHeight;
-	localStorage.setItem("chat_history", chat_window.innerHTML);
+async function displayChannel(id){
+	const chatWindow = document.getElementById("chat-window");
+	chatWindow.innerHTML = localStorage.getItem(`channel-history-${id}`).join("\n");
+	chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
 async function sendMessage() {
