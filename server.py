@@ -103,7 +103,10 @@ async def channel(info: ChannelInfo):
 connections = []
 @app.websocket("/ws")
 async def endpoint(websocket: WebSocket):
-    session, user = await setupConnection(websocket)
+    t = await setupConnection(websocket)
+    if t is None:
+        return
+    session, user = t
     try:
         while True:
             message = await websocket.receive_json()

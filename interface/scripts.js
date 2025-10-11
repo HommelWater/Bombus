@@ -23,11 +23,7 @@ function onLoad() {
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
 	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);
 	document.getElementById("new-invite-button").addEventListener('click', createInviteCode);
-	loadHistory();
-}
-
-function displayChannel(id){
-
+	displayChannel("1", "Welcome back!");
 }
 
 function addChannel(name, id){
@@ -37,7 +33,7 @@ function addChannel(name, id){
     channelDiv.textContent = `${id}-${name}`;
     channelDiv.dataset.channelId = `channel-${id}`;
 	channelDiv.addEventListener('click', (event)=>{
-		localStorage.setItem("channel", id);
+		displayChannel(id, name);
 	});
 	channelDiv.addEventListener('click', (event)=>{
 
@@ -103,13 +99,17 @@ async function setupConnection() {
 		console.log(event.data);
 		data = JSON.parse(event.data);
 		if (data.msg){
-			addMessage(data.username, data.msg, data.created_at);
+			addMessage(data.channel, data.username, data.msg, data.created_at);
 		}
 		if (data.channels){
 			document.getElementById("channels").innerHTML = "";
 			data.channels.forEach(channel => {
 				addChannel(channel.name, channel.id);
 			});
+		}
+		if (data.status){
+			localStorage.removeItem("session");
+			location.href = "/";
 		}
 	});
 	socket.addEventListener('close', (event) => {
@@ -124,26 +124,49 @@ async function setupConnection() {
 async function addMessage(channel, username, message, created_at) {
 	if (message.trim() === "") return;
 	const date = timeIntToString(created_at);
-	const messageHTML = `<div class="item_row user"><div class="left_item"><div style="display:flex;border-bottom:1px solid var(--color-border);min-width:200px;">${username}<div style="margin-left:auto">${date}</div></div><div>${message}<div></div></div>`;
-	const channelJSON = localStorage.getItem(`channel-history-${channel}`) | ""
+	const messageHTML = `
+	<div class="item_row user" style="max-width:90vw;">
+		<div class="left_item">
+			<div style="display:flex;border-bottom:1px solid var(--color-border);min-width:200px;">
+			${username}
+				<div style="margin-left:auto">
+				${date}
+				</div>
+			</div>
+			<div>
+			${message}
+			</div>
+		</div>
+	</div>`;
+	const channelJSON = localStorage.getItem(`channel-history-${channel}`) || '[""]';
 	const channelMessages = JSON.parse(channelJSON);
 	channelMessages.push(messageHTML);
 	if (channelMessages.length > 50){
 		channelMessages.splice(0, 1);
 	}
-	localStorage.setItem(`chat-history-${channel}`, JSON.stringify(channelMessages));
+	localStorage.setItem(`channel-history-${channel}`, JSON.stringify(channelMessages));
+	const currentChannel = localStorage.getItem("channel") || "0";
+	if (channel === currentChannel){
+		const chatWindow = document.getElementById("chat-window");
+		chatWindow.innerHTML = channelMessages.join("\n");
+		chatWindow.scrollTop = chatWindow.scrollHeight;
+	}
 }
 
-async function displayChannel(id){
+async function displayChannel(id, name){
+	localStorage.setItem("channel", id);
 	const chatWindow = document.getElementById("chat-window");
-	chatWindow.innerHTML = localStorage.getItem(`channel-history-${id}`).join("\n");
+	const string = localStorage.getItem(`channel-history-${id}`) || '[""]';
+	const json = JSON.parse(string);
+	chatWindow.innerHTML = json.join("\n");
+	document.getElementById('chat-header').innerText = name;
 	chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
 async function sendMessage() {
 	const input = document.getElementById("user-input");
 	if (input.value.trim() === "") return;
-	const channel = localStorage.getItem("channel", "0");
+	const channel = localStorage.getItem("channel") || "0";
 	socket.send(JSON.stringify({"channel":channel, "msg":input.value}));
 	input.value = "";
 }
@@ -153,12 +176,6 @@ function handle_input_key(e) {
 		e.preventDefault();
 		document.getElementById("send-button").click();
 	}
-}
-
-function loadHistory() {
-	const chat_window = document.getElementById("chat-window");
-	const chat_history = localStorage.getItem("chat_history");
-	chat_window.innerHTML = chat_history;
 }
 
 function generateTOTPQRCode(secret, issuer, accountName) {
