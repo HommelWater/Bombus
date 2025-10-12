@@ -24,6 +24,9 @@ body {
 	flex-direction: column;
 	width: 100dvw;
 	height: 100dvh;
+	/*background-image: url("./bg.png");
+	background-size:contain;
+	background-repeat: repeat;*/
 }
 
 h1 {
@@ -60,8 +63,8 @@ p {
 
 .sidebar-item {
 	text-align: left;
-	padding: 10px;
-	margin: 10px;
+	padding: 5px;
+	margin: 5px;
 	background: var(--color-items);
 	border: 1px solid var(--color-border);
 }
@@ -100,6 +103,8 @@ h2 {
 	/* ESSENTIAL: prevents flex children from growing past container */
 	border-radius: 0px;
 	color: var(--color-text);
+	/*background-image: url("./wolf.webp");*/
+	background-size: cover;
 }
 
 /* message styling helper */
@@ -149,6 +154,7 @@ textarea {
 	border-radius: 0px;
 	margin-bottom: auto;
 	margin-top: auto;
+	color: var(--color-text);
 }
 
 .btn:hover {

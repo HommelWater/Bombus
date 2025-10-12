@@ -30,13 +30,10 @@ function addChannel(name, id){
 	const channelsDiv = document.getElementById("channels");
 	const channelDiv = document.createElement("div");
 	channelDiv.className = "sidebar-item";
-    channelDiv.textContent = `${id}-${name}`;
-    channelDiv.dataset.channelId = `channel-${id}`;
+    channelDiv.textContent = `${name}`;
+    channelDiv.id = `channel-${id}`;
 	channelDiv.addEventListener('click', (event)=>{
 		displayChannel(id, name);
-	});
-	channelDiv.addEventListener('click', (event)=>{
-
 	});
 	channelsDiv.appendChild(channelDiv);
 }
@@ -145,7 +142,7 @@ async function addMessage(channel, username, message, created_at) {
 		channelMessages.splice(0, 1);
 	}
 	localStorage.setItem(`channel-history-${channel}`, JSON.stringify(channelMessages));
-	const currentChannel = localStorage.getItem("channel") || "0";
+	const currentChannel = localStorage.getItem("channel") || "1";
 	if (channel === currentChannel){
 		const chatWindow = document.getElementById("chat-window");
 		chatWindow.innerHTML = channelMessages.join("\n");
@@ -161,12 +158,16 @@ async function displayChannel(id, name){
 	chatWindow.innerHTML = json.join("\n");
 	document.getElementById('chat-header').innerText = name;
 	chatWindow.scrollTop = chatWindow.scrollHeight;
+	document.getElementById('channels').childNodes.forEach((child) =>{
+		child.style.background = "var(--color-items)";
+	});
+	document.getElementById(`channel-${id}`).style.background = "var(--color-button)";
 }
 
 async function sendMessage() {
 	const input = document.getElementById("user-input");
 	if (input.value.trim() === "") return;
-	const channel = localStorage.getItem("channel") || "0";
+	const channel = localStorage.getItem("channel") || "1";
 	socket.send(JSON.stringify({"channel":channel, "msg":input.value}));
 	input.value = "";
 }
