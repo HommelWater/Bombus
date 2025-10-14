@@ -25,7 +25,40 @@ function onLoad() {
 	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);
 	document.getElementById("new-invite-button").addEventListener('click', createInviteCode);
 	document.getElementById("sidebar-button").addEventListener('click', toggleSidebar);
-	displayChannel("1", "Welcome back!");
+	document.getElementById("profile-picture-input").addEventListener('change', changeProfilePicture);
+}
+
+async function changeProfilePicture(e){
+	const session = localStorage.getItem("session");
+	const file = e.target.files[0];		
+	const extension = file.name.split('.').pop();
+
+	if (!file || !file.type.startsWith('image/')) {
+        console.log('Please select a valid image file');
+        return;
+	}
+
+	const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
+
+	const res = await fetch('/change_profile_picture', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ "session_key":session, "file":base64, "extension":extension })
+	});
+	if (!res.ok) {
+		const { error } = await res.json().catch(() => ({}));
+		console.log(error);
+		return;
+	}
+	
+	const data = await res.json();
+	console.log(data);
+	location.href = "/";
 }
 
 function toggleSidebar(){
@@ -48,7 +81,7 @@ function addChannel(name, id, connected_users){
 		</div>
 		<div id="channel-${id}-users" style="display:flex">
 			${connected_users.map(user => `
-            	<img src="./images/${user}.jpg" style="width:25px; margin-right: 2px;" title="${user}">
+            	<img src="./images/users/${user}.webp" style="width:25px; margin-right: 2px;" title="${user}">
         	`).join('')}
 		</div>
 		`;
@@ -137,10 +170,16 @@ async function setupConnection() {
 			data.channels.forEach(channel => {
 				addChannel(channel.name, channel.id, channel.connected_users);
 			});
+			displayChannel(data.channels[0].id, data.channels[0].name);
 		}
 		if (data.status){
 			localStorage.removeItem("session");
 			location.href = "/";
+		}
+		if (data.type === "channel_users") {
+			document.getElementById(`channel-${data.channel_id}-users`).innerHTML = data.users.map(user => `
+            	<img src="./images/users/${user}.webp" style="width:25px; margin-right: 2px;" title="${user}">
+        	`).join('');
 		}
 	});
 	socket.addEventListener('close', (event) => {

@@ -4,6 +4,10 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import database as data
 import time
+import base64
+from pathlib import Path
+from PIL import Image
+import io
 
 from auth import router as auth_router
 from persistent import router as peristent_router
@@ -17,6 +21,11 @@ app.include_router(peristent_router, prefix="/persistent")
 class ChannelInfo(BaseModel):
     session_key: str
     name: str
+
+class ChangeProfilePictureInfo(BaseModel):
+    session_key: str
+    file: str
+    extension: str
 
 @app.get("/")
 async def read_root():
@@ -36,6 +45,36 @@ async def channel(info: ChannelInfo):
     await broadcast({"channels":data.get_channels()})
     return {"status":"success", "result":idx}
 
+@app.post("/change_profile_picture")
+async def change_profile_picture(info: ChangeProfilePictureInfo):
+    session = data.get_session(info.session_key)
+    if session is None:
+        return {"status":"failure", "result":"Could not find session."}
+    
+    user_id = session["user_id"]
+    file_data = base64.b64decode(info.file)
+    
+    try:
+        image = Image.open(io.BytesIO(file_data))
+        if image.mode in ('RGBA', 'LA', 'P'):
+            background = Image.new('RGB', image.size, (255, 255, 255))
+            if image.mode == 'P':
+                image = image.convert('RGBA')
+            background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+            image = background   
+        output_buffer = io.BytesIO()
+        image.save(output_buffer, format='WEBP', quality=85) 
+        webp_data = output_buffer.getvalue()
+
+        file_path = Path(f"./interface/images/users/{user_id}.webp")
+        file_path.parent.mkdir(exist_ok=True)
+        with open(file_path, "wb") as f:
+            f.write(webp_data)
+        
+        return {"status": "success", "message": "Profile picture updated."}
+    
+    except Exception as e:
+        return {"status": "failure", "result": f"Error processing image: {str(e)}"}
 
 app.mount("/", StaticFiles(directory="./interface"), name="static")
 

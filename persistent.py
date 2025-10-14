@@ -100,6 +100,7 @@ async def vc_disconnect(websocket: WebSocket, data, session, user):
         if user_id == peer: continue
         await connections[peer].send_json({"type":"disconnect", "user":[user_id]})
     channel_peers[channel_id].remove(user_id)
+    await broadcast({"type":"channel_users", "channel_id":channel_id, "users":list(channel_peers[channel_id])})
     return session, user
 
 

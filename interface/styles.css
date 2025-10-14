@@ -153,6 +153,7 @@ textarea {
 	margin-bottom: auto;
 	margin-top: auto;
 	color: var(--color-text);
+	font-size:medium;
 }
 
 .btn:hover {
@@ -210,4 +211,25 @@ textarea:focus {
 
 .ai {
 	margin-bottom: 15px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.profile-picture-input-label {
+	text-align: center;
+    display: inline-block;
+    padding: 12px 18px;
+	width: 100%;
+    color: var(--color-text);
+    cursor: pointer;
+	font-weight: 600;
+	background: var(--color-button);
+	transition: transform .12s ease, opacity .12s ease, background .12s ease;
+	font-size:medium;
+}
+
+.profile-picture-input-label:hover{
+	background: var(--color-button-h);
 }

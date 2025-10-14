@@ -1,3 +1,3 @@
 python -m venv venv
 source ./venv/bin/activate
-pip install fastapi uvicorn websockets pyotp
+pip install fastapi uvicorn websockets pyotp pillow
