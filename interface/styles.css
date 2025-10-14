@@ -24,15 +24,16 @@ body {
 	flex-direction: column;
 	width: 100dvw;
 	height: 100dvh;
-	/*background-image: url("./bg.png");
-	background-size:contain;
-	background-repeat: repeat;*/
 }
 
-h1 {
+h2 {
 	color: var(--color-text);
-	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-	font-size: 2.6rem;
+	font-size: 2.4rem;
+}
+
+h3 {
+	margin-top: 0px;
+	margin-bottom: 0px;
 }
 
 p {
@@ -58,7 +59,6 @@ p {
 	background: var(--color-card);
 	margin-right: 5px;
 	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-
 }
 
 .sidebar-item {
@@ -103,8 +103,6 @@ h2 {
 	/* ESSENTIAL: prevents flex children from growing past container */
 	border-radius: 0px;
 	color: var(--color-text);
-	/*background-image: url("./wolf.webp");*/
-	background-size: cover;
 }
 
 /* message styling helper */
@@ -169,6 +167,7 @@ textarea {
 		width: 100%;
 		padding: 0px;
 		max-height: 100%;
+		flex-direction: column;
 	}
 
 	.form-group textarea {
@@ -177,12 +176,20 @@ textarea {
 
 	.sidebar {
 		display: none;
+		width: 100%;
+		max-width: 100%;
 	}
 
 	.card {
 		width: 100%;
 		padding-left: 0px;
-		padding-right: 0px
+		padding-right: 0px;
+		overflow-y:auto;
+		min-height: 500px;
+	}
+
+	body, html{
+		overscroll-behavior: initial;
 	}
 }
 

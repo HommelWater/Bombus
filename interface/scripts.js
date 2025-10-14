@@ -1,3 +1,4 @@
+import {joinChannel, leaveChannel, currentChannel, setupVoiceChat} from "./voice.js";
 document.addEventListener('DOMContentLoaded', onLoad);
 let socket;
 
@@ -23,19 +24,52 @@ function onLoad() {
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
 	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);
 	document.getElementById("new-invite-button").addEventListener('click', createInviteCode);
+	document.getElementById("sidebar-button").addEventListener('click', toggleSidebar);
 	displayChannel("1", "Welcome back!");
 }
 
-function addChannel(name, id){
+function toggleSidebar(){
+	const sidebarDiv = document.getElementById('sidebar');
+	if (sidebarDiv.style.display === "inline-block" || !sidebarDiv.style.display){
+		sidebarDiv.style.display = 'none';
+	} else {
+		sidebarDiv.style.display = 'inline-block';
+	}
+}
+
+function addChannel(name, id, connected_users){
 	const channelsDiv = document.getElementById("channels");
 	const channelDiv = document.createElement("div");
 	channelDiv.className = "sidebar-item";
-    channelDiv.textContent = `${name}`;
+    channelDiv.innerHTML = `
+		<div style="display:flex">
+			<div id="channel-${id}-name" style="margin-top:auto;margin-bottom:auto">${name}</div>
+			<div id="channel-${id}-join-button" class="btn join-channel-button" style="margin-left:auto;padding:8px">🎤</div>
+		</div>
+		<div id="channel-${id}-users" style="display:flex">
+			${connected_users.map(user => `
+            	<img src="./images/${user}.jpg" style="width:25px; margin-right: 2px;" title="${user}">
+        	`).join('')}
+		</div>
+		`;
     channelDiv.id = `channel-${id}`;
 	channelDiv.addEventListener('click', (event)=>{
 		displayChannel(id, name);
 	});
 	channelsDiv.appendChild(channelDiv);
+
+	const joinButton = document.getElementById(`channel-${id}-join-button`);
+	joinButton.addEventListener('click', (event) =>{
+		document.querySelectorAll(".join-channel-button").forEach((element)=>{
+			element.innerHTML = "🎤";
+		});
+		if (currentChannel == id){
+			leaveChannel();
+		} else{
+			joinChannel(id);
+			joinButton.innerHTML = "✖";
+		}
+	});
 }
 
 function addChannelButton(e){
@@ -67,7 +101,7 @@ async function requestNewChannel(){
 
 async function createInviteCode(){
 	const session = localStorage.getItem("session");
-	const res = await fetch('/invite', {
+	const res = await fetch('/auth/invite', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ "session_key":session, "uses":"1" })
@@ -85,23 +119,23 @@ async function createInviteCode(){
 }
 
 async function setupConnection() {
-	socket = new WebSocket('ws://localhost:8000/ws');
+	socket = new WebSocket('ws://localhost:8000/persistent/ws');
 	socket.addEventListener('open', (event) => {
 		const session = localStorage.getItem("session");
-		socket.send(JSON.stringify({"session":session, "msg": 'Hello Server!'}));
+		socket.send(JSON.stringify({"type":"hello", "data":{"session":session}}));
 		console.log('Connected to server');
 	});
 
 	socket.addEventListener('message', (event) => {
 		console.log(event.data);
-		data = JSON.parse(event.data);
+		const data = JSON.parse(event.data);
 		if (data.msg){
 			addMessage(data.channel, data.username, data.msg, data.created_at);
 		}
 		if (data.channels){
 			document.getElementById("channels").innerHTML = "";
 			data.channels.forEach(channel => {
-				addChannel(channel.name, channel.id);
+				addChannel(channel.name, channel.id, channel.connected_users);
 			});
 		}
 		if (data.status){
@@ -111,11 +145,13 @@ async function setupConnection() {
 	});
 	socket.addEventListener('close', (event) => {
 		console.log('Disconnected from server');
+		location.href = "/";
 	});
 
 	socket.addEventListener('error', (event) => {
 		console.error('WebSocket error:', event);
 	});
+	setupVoiceChat(socket);
 }
 
 async function addMessage(channel, username, message, created_at) {
@@ -156,19 +192,19 @@ async function displayChannel(id, name){
 	const string = localStorage.getItem(`channel-history-${id}`) || '[""]';
 	const json = JSON.parse(string);
 	chatWindow.innerHTML = json.join("\n");
-	document.getElementById('chat-header').innerText = name;
+	document.getElementById('chat-header-text').innerText = name;
 	chatWindow.scrollTop = chatWindow.scrollHeight;
 	document.getElementById('channels').childNodes.forEach((child) =>{
 		child.style.background = "var(--color-items)";
 	});
-	document.getElementById(`channel-${id}`).style.background = "var(--color-button)";
+	document.getElementById(`channel-${id}`).style.background = "var(--color-button-h)";
 }
 
 async function sendMessage() {
 	const input = document.getElementById("user-input");
 	if (input.value.trim() === "") return;
 	const channel = localStorage.getItem("channel") || "1";
-	socket.send(JSON.stringify({"channel":channel, "msg":input.value}));
+	socket.send(JSON.stringify({"type":"message", "data":{channel:channel, "msg":input.value}}));
 	input.value = "";
 }
 
@@ -205,7 +241,7 @@ async function onLoginButton(){
 }
 
 async function signup(username, invite_code){
-	const res = await fetch('/signup', {
+	const res = await fetch('/auth/signup', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ "username":username, "invite_code":invite_code })
@@ -222,7 +258,7 @@ async function signup(username, invite_code){
 }
 
 async function login(username, totp_code){
-	const res = await fetch('/login', {
+	const res = await fetch('/auth/login', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ "username":username, "totp_code":totp_code })
@@ -242,4 +278,3 @@ async function login(username, totp_code){
 		document.getElementById('login').style.display = "none";
 	}
 }
-

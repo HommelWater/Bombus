@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="icon" href="/icon.png" type="image/png">
-    <title>Chat</title>
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="icon" href="./images/icon.jpg" type="image/png">
+    <title>Buzz</title>
     <link rel="stylesheet" href="./webkit.css">
+    <link rel="stylesheet" href="./styles.css">
     <link rel="stylesheet" href="./themes.css">
-    <script src="./scripts.js"></script>
+    
+    <script src="./scripts.js" type="module"></script>
+    <script src="./voice.js" type="module"></script>
     <script src="./themes.js"></script>
     <script src="./qr/qrcode.min.js"></script>
     </head>
@@ -25,7 +27,7 @@
     </div>
     <div id="container" class="container" style="display:none;">
         <div id ="sidebar" class="sidebar">
-            <img src="./icon.jpg" style="width: 100%; height:auto;">
+            <img src="./images/icon.jpg" style="width: 100%; height:auto;">
             <h2>Settings</h2>
             <div id="invite-code-item" class="sidebar-item" style="display:flex;">
                 <button id="new-invite-button" style="width:100%" class="btn">New Invite</button>
@@ -37,7 +39,10 @@
             <div id="channels"></div>
         </div>
         <div class="card" id="chat-card">
-            <h3 id="chat-header" style="text-align: left;"></h3>
+            <div id="chat-header" style="text-align: left; display: flex;">
+                <div id="sidebar-button" class="sidebar-button" style="text-align: left; width:30px;"><h3>☰</h3></div>
+                <h3 id="chat-header-text"></h3>
+            </div>
             <div id="chat-window" style="color: var(--color-text);"></div>
         <div class="form-group">
             <textarea id="user-input" placeholder="Typ hier jouw bericht..."></textarea>
