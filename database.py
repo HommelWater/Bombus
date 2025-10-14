@@ -1,6 +1,5 @@
 import sqlite3
-from typing import Optional, Dict, Any
-
+from typing import Optional, Dict, Any, List
 db_path = "data.db"
     
 def init_database():
@@ -11,7 +10,7 @@ def init_database():
                 referer_id INTEGER,
                 username TEXT UNIQUE NOT NULL,
                 totp_secret TEXT UNIQUE NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at INTEGER DEFAULT (strftime('%s', 'now')),
                 verified BOOLEAN DEFAULT 0,
                 FOREIGN KEY (referer_id) REFERENCES users (id)
             )
@@ -21,8 +20,8 @@ def init_database():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 key TEXT UNIQUE NOT NULL,     
                 user_id INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at INTEGER DEFAULT (strftime('%s', 'now')),
+                last_used INTEGER DEFAULT (strftime('%s', 'now')),
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )
         ''')
@@ -32,8 +31,8 @@ def init_database():
                 code TEXT,     
                 inviter_id INTEGER,
                 uses INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at INTEGER DEFAULT (strftime('%s', 'now')),
+                last_used INTEGER DEFAULT (strftime('%s', 'now')),
                 FOREIGN KEY (inviter_id) REFERENCES users (id)
             )
         ''')
@@ -41,7 +40,7 @@ def init_database():
             CREATE TABLE IF NOT EXISTS channels (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at INTEGER DEFAULT (strftime('%s', 'now'))
             )
         ''')
         conn.execute('''
@@ -50,11 +49,30 @@ def init_database():
                 channel INTEGER,
                 user_id INTEGER,
                 content TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at INTEGER DEFAULT (strftime('%s', 'now')),
                 FOREIGN KEY (user_id) REFERENCES users (id),
                 FOREIGN KEY (channel) REFERENCES channels (id)
             )
         ''')
+        conn.execute('''
+            CREATE INDEX IF NOT EXISTS idx_posts_channel_created_at ON posts(channel, created_at DESC);
+        ''')
+
+def get_posts_from_offset(channel_id, offset_m, limit_n):
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.execute('''
+            SELECT *
+            FROM posts
+            WHERE channel = ?
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+        ''', (channel_id, limit_n, offset_m))
+        
+        posts = []
+        for row in cursor:
+            posts.append(dict(row))
+        return posts
 
 def create_invite_code(code, user_id, uses):
     with sqlite3.connect(db_path) as conn:
@@ -85,6 +103,25 @@ def get_invite_code(code: str) -> dict | None:
                 'created_at': row[4],
                 'last_used': row[5]
             }
+
+def get_post(post_id):
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM posts WHERE id = ?",
+            (post_id,)
+        )
+        row = cursor.fetchone()
+        print(row)
+        if row:
+            return {
+                'id': row[0],
+                'channel': row[1],
+                'user_id': row[2],
+                'content': row[3],
+                'created_at': row[4]
+            }
+
 
 def create_session(session_key: str, user_id: int) -> int:
     """Create a new session"""
@@ -183,6 +220,12 @@ def get_user_by_id(id: str) -> Optional[Dict[str, Any]]:
             }
         return None
     
+def get_users_ids() -> Dict[int, str]:
+    """Return a dictionary of all users as {user_id: username}."""
+    with sqlite3.connect(db_path) as conn:
+        cur = conn.execute("SELECT id, username FROM users ORDER BY id;")
+        return {row[0]: row[1] for row in cur.fetchall()}
+
 def create_channel(name: str) -> int:
     """Create a new session"""
     with sqlite3.connect(db_path) as conn:
@@ -204,3 +247,58 @@ def get_channels() -> Optional[Dict[str, Any]]:
         )
         rows = cursor.fetchall()
         return [{'id': row[0], 'name': row[1]} for row in rows]
+    
+def recent_posts_per_channel(
+    limit: int = 50,
+    since_id: Optional[int] = None
+) -> List[Dict[str, Any]]:
+    """
+    Fetch a flat list of recent posts across all channels.
+    - Always limits to 'limit' posts per channel (default 50).
+    - If since_id is provided, only include posts with id > since_id.
+    """
+    
+    base_query = """
+    WITH ranked AS (
+      SELECT
+        p.id,
+        p.channel,
+        c.name AS channel_name,
+        p.user_id,
+        p.content,
+        p.created_at,
+        ROW_NUMBER() OVER (
+          PARTITION BY p.channel
+          ORDER BY p.created_at DESC, p.id DESC
+        ) AS rn
+      FROM posts p
+      LEFT JOIN channels c ON c.id = p.channel
+      {filter_clause}
+    )
+    SELECT id, channel, channel_name, user_id, content, created_at
+    FROM ranked
+    WHERE rn <= ?
+    ORDER BY created_at DESC;
+    """
+
+    if since_id is not None:
+        filter_clause = "WHERE p.id > ?"
+        params = (since_id, limit)
+    else:
+        filter_clause = ""
+        params = (limit,)
+
+    query = base_query.format(filter_clause=filter_clause)
+
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute(query, params)
+        rows = cur.fetchall()
+
+    return [dict(r) for r in rows]
+
+def reset_posts():
+    """Delete all posts from the database."""
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("DELETE FROM posts;")
+        conn.commit()

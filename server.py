@@ -27,6 +27,11 @@ class ChangeProfilePictureInfo(BaseModel):
     file: str
     extension: str
 
+class LoadMessagesInfo(BaseModel):
+    session_key: str
+    from_message: int
+    channel_id: int
+
 @app.get("/")
 async def read_root():
     return FileResponse("./interface/index.html")
@@ -75,6 +80,16 @@ async def change_profile_picture(info: ChangeProfilePictureInfo):
     
     except Exception as e:
         return {"status": "failure", "result": f"Error processing image: {str(e)}"}
+
+@app.post("/load_messages")
+async def load_messages(info: LoadMessagesInfo):
+    session = data.get_session(info.session_key)
+    if session is None:
+        return {"status":"failure", "result":"Could not find session."}
+    posts = data.get_posts_from_offset(info.channel_id, info.from_message, 50)
+    if posts is None:
+        return {"status":"failure", "result":"Could not get posts."}
+    return {"status":"success", "result":posts}
 
 app.mount("/", StaticFiles(directory="./interface"), name="static")
 

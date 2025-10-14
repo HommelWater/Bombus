@@ -27,13 +27,13 @@ async def onHello(websocket: WebSocket, data, session, user):
     
     session = database.get_session(session_key)
     if not session:
-        await websocket.send_json({"status": "Invalid session."})
+        await websocket.send_json({"status": "Invalid session.", "reset":True})
         await websocket.close()
         return None, None
     
     user = database.get_user_by_id(session["user_id"])
     if not user:
-        await websocket.send_json({"status": "Invalid user."})
+        await websocket.send_json({"status": "Invalid user.", "reset":True})
         await websocket.close()
         return None, None
     
@@ -41,13 +41,18 @@ async def onHello(websocket: WebSocket, data, session, user):
     channels = database.get_channels()
     for i in range(len(channels)):
         channels[i]["connected_users"] = list(channel_peers.get(i, ()))
-    await websocket.send_json({"channels":channels})
+    recent_posts = database.recent_posts_per_channel(since_id=data["latest_post_id"])
+    if recent_posts is None:
+        recent_posts = []
+    users = database.get_users_ids()
+    await websocket.send_json({"channels":channels, "user_id": session["user_id"], "users":users, "posts":recent_posts})
     return session, user
 
 async def onMessage(websocket: WebSocket, data, session, user):
     data["username"] = user["username"]
-    data["created_at"] = int(time.time())
-    database.add_post(user["id"], data["channel"], data["msg"])
+    post_id = database.add_post(user["id"], data["channel"], data["msg"])
+    data["id"] = post_id
+    data["created_at"] = database.get_post(post_id)["created_at"]
     await broadcast(data)
     return session, user
 
@@ -102,8 +107,6 @@ async def vc_disconnect(websocket: WebSocket, data, session, user):
     channel_peers[channel_id].remove(user_id)
     await broadcast({"type":"channel_users", "channel_id":channel_id, "users":list(channel_peers[channel_id])})
     return session, user
-
-
 
 base_packet_types = {
     "hello":onHello,
