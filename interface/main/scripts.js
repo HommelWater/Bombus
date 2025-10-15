@@ -1,5 +1,5 @@
 import {joinChannel, leaveChannel, currentChannel, setupVoiceChat} from "/main/voice.js";
-import { setupWebSocket } from "/main/persistent.js";
+import { setupWebSocket, users } from "/main/persistent.js";
 document.addEventListener('DOMContentLoaded', onLoad);
 let socket;
 
@@ -112,11 +112,7 @@ async function loadOlderMessages(chatWindow){
 	}
 	
 	const data = await res.json();
-	console.log(data);
-
 	oldestMessage += 50;
-	const newScrollHeight = chatWindow.scrollHeight;
-    chatWindow.scrollTop = oldScrollTop + (newScrollHeight - oldScrollHeight);
 
 	if (data.result.length == 0){
 		hasMore = false;
@@ -126,6 +122,10 @@ async function loadOlderMessages(chatWindow){
 	data.result.forEach(post => {
 		addMessage(channelId, users[post.user_id], post.content, post.created_at, false);
 	});
+
+	const newScrollHeight = chatWindow.scrollHeight;
+    chatWindow.scrollTop = oldScrollTop + (newScrollHeight - oldScrollHeight);
+
 	isLoading = false;
 }
 

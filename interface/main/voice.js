@@ -1,9 +1,37 @@
-let socket = null;
+let socket;
 export let currentChannel = -1;
 const peerConnections = new Map();
-let localStream = null;
+let localStream;
 
-
+async function createOfferFor(targetUserId) {
+    const pc = new RTCPeerConnection();
+    peerConnections.set(targetUserId, pc);
+    
+    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+    
+    pc.ontrack = (event) => {
+        const audio = new Audio();
+        audio.srcObject = event.streams[0];
+        audio.play();
+    };
+    
+    pc.onicecandidate = (event) => {
+        if (event.candidate) {
+            socket.send(JSON.stringify({
+                "type": "vc_candidate",
+                "data": {"id":targetUserId, "candidate":event.candidate}
+            }));
+        }
+    };
+    
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    
+    socket.send(JSON.stringify({
+        "type": "vc_offer",
+        "data": { "id": targetUserId, "offer": offer }
+    }));
+}
 
 export async function joinChannel(channelId) {
     if (currentChannel != -1){
@@ -20,39 +48,39 @@ export async function joinChannel(channelId) {
     currentChannel = channelId;
 }
 
-async function createOfferForUser(targetUserId) {
-    const pc = new RTCPeerConnection();
-    peerConnections.set(targetUserId, pc);
-    
-    // Add local stream
-    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-    
-    // Handle incoming stream
-    pc.ontrack = (event) => {
-        // Add remote audio to UI
-        const audio = new Audio();
-        audio.srcObject = event.streams[0];
-        audio.play();
-    };
-    
-    // Handle ICE candidates
-    pc.onicecandidate = (event) => {
-        if (event.candidate) {
-            socket.send(JSON.stringify({
-                "type": "vc_candidate",
-                "data": {"id":targetUserId, "candidate":event.candidate}
-            }));
-        }
-    };
-    
-    // Create and send offer
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    
+export function leaveChannel() {
     socket.send(JSON.stringify({
-        "type": "vc_offer",
-        "data": { "id": targetUserId, "offer": offer }
+        "type": "vc_disconnect",
+        "data": {"channel_id": currentChannel}
     }));
+    
+    // Close all peer connections
+    peerConnections.forEach(pc => pc.close());
+    peerConnections.clear();
+    currentChannel = -1;
+}
+
+export function setupVoiceChat(ws){
+    socket = ws;
+    socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type in voice_packet_types) voice_packet_types[data.type](data.data);
+    }
+}
+
+async function connect(data){
+    data.users.forEach(userId => {
+        if (userId > data.current_user){
+            createOfferFor(userId);
+        }
+    });
+}
+
+async function disconnect(data){
+    const user_id = data.user_id;
+    const pc = peerConnections.get(user_id);
+    if (pc) pc.close();
+    peerConnections.delete(user_id);
 }
 
 async function offer(data) {
@@ -61,17 +89,14 @@ async function offer(data) {
     const pc = new RTCPeerConnection();
     peerConnections.set(fromUserId, pc);
     
-    // Add local stream
     localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
     
     pc.ontrack = (event) => {
-        // Add remote audio
         const audio = new Audio();
         audio.srcObject = event.streams[0];
         audio.play();
     };
     
-    // Handle ICE candidates
     pc.onicecandidate = (event) => {
         if (event.candidate) {
             socket.send(JSON.stringify({
@@ -81,7 +106,6 @@ async function offer(data) {
         }
     };
     
-    // Set remote offer and create answer
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
@@ -108,41 +132,6 @@ async function candidate(data) {
     if (pc) {
         await pc.addIceCandidate(candidate);
     }
-}
-
-export function leaveChannel() {
-    socket.send(JSON.stringify({
-        "type": "vc_disconnect",
-        "data": {"channel_id": currentChannel}
-    }));
-    
-    // Close all peer connections
-    peerConnections.forEach(pc => pc.close());
-    peerConnections.clear();
-    currentChannel = -1;
-}
-
-export function setupVoiceChat(ws){
-    socket = ws;
-    socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type in voice_packet_types) voice_packet_types[data.type](data.data);
-    }
-}
-
-async function connect(data){
-    data.users.forEach(userId => {
-        if (userId > data.current_user){
-            createOfferForUser(userId);
-        }
-    });
-}
-
-async function disconnect(data){
-    const user_id = data.user_id;
-    const pc = peerConnections.get(user_id);
-    if (pc) pc.close();
-    peerConnections.delete(user_id);
 }
 
 const voice_packet_types = {
