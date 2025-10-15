@@ -3,6 +3,8 @@ export let currentChannel = -1;
 const peerConnections = new Map();
 let localStream = null;
 
+
+
 export async function joinChannel(channelId) {
     if (currentChannel != -1){
         leaveChannel();
@@ -53,7 +55,9 @@ async function createOfferForUser(targetUserId) {
     }));
 }
 
-async function handleOffer(offer, fromUserId) {
+async function offer(data) {
+    const offer = data.offer;
+    const fromUserId = data.user_id;
     const pc = new RTCPeerConnection();
     peerConnections.set(fromUserId, pc);
     
@@ -88,14 +92,18 @@ async function handleOffer(offer, fromUserId) {
     }));
 }
 
-async function handleAnswer(answer, fromUserId) {
+async function answer(data) {
+    const answer = data.answer
+    const fromUserId = data.user_id;
     const pc = peerConnections.get(fromUserId);
     if (pc) {
         await pc.setRemoteDescription(answer);
     }
 }
 
-async function handleCandidate(candidate, fromUserId) {
+async function candidate(data) {
+    const candidate = data.candidate;
+    const fromUserId = data.user_id;
     const pc = peerConnections.get(fromUserId);
     if (pc) {
         await pc.addIceCandidate(candidate);
@@ -118,32 +126,29 @@ export function setupVoiceChat(ws){
     socket = ws;
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        switch(data.type) {
-            case "connect":
-                // For each user in data.users, create offers
-                data.users.forEach(userId => {
-                    if (userId > data.current_user){
-                        createOfferForUser(userId);
-                        console.log(userId);
-                    }
-                });
-                break;
-            case "offer":
-                handleOffer(data.offer, data.user_id);
-                break;
-            case "answer":
-                handleAnswer(data.answer, data.user_id);
-                break;
-            case "candidate":
-                handleCandidate(data.candidate, data.user_id);
-                break;
-            case "disconnect":
-                // Close connection to disconnected user
-                const pc = peerConnections.get(data.user[0]);
-                if (pc) pc.close();
-                peerConnections.delete(data.user[0]);
-                break;
-        }
-    };
+        if (data.type in voice_packet_types) voice_packet_types[data.type](data.data);
+    }
 }
 
+async function connect(data){
+    data.users.forEach(userId => {
+        if (userId > data.current_user){
+            createOfferForUser(userId);
+        }
+    });
+}
+
+async function disconnect(data){
+    const user_id = data.user_id;
+    const pc = peerConnections.get(user_id);
+    if (pc) pc.close();
+    peerConnections.delete(user_id);
+}
+
+const voice_packet_types = {
+    "offer":offer,
+    "connect":connect,
+    "answer":answer,
+    "candidate":candidate,
+    "disconnect":disconnect
+}

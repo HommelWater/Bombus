@@ -49,7 +49,7 @@ async def onHello(websocket: WebSocket, data, session, user):
     return session, user
 
 async def onMessage(websocket: WebSocket, data, session, user):
-    post_id = database.add_post(user["id"], data["channel"], data["msg"])
+    post_id = database.add_post(user["id"], data["channel"], data["content"])
     data = database.get_post(post_id)
     await broadcast({"type":"message", "data":data})
     return session, user
@@ -101,7 +101,7 @@ async def vc_disconnect(websocket: WebSocket, data, session, user):
 
     for peer in channel_peers[channel_id]:
         if user_id == peer: continue
-        await connections[peer].send_json({"type":"disconnect", "data": {"user":[user_id]}})
+        await connections[peer].send_json({"type":"disconnect", "data": {"user_id":user_id}})
     channel_peers[channel_id].remove(user_id)
     await broadcast({"type":"vc_users", "data": {"channel_id":channel_id, "users":list(channel_peers[channel_id])}})
     return session, user

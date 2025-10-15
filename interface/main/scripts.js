@@ -2,7 +2,6 @@ import {joinChannel, leaveChannel, currentChannel, setupVoiceChat} from "/main/v
 import { setupWebSocket } from "/main/persistent.js";
 document.addEventListener('DOMContentLoaded', onLoad);
 let socket;
-let users = {};
 
 function timeIntToString(time){
 	const date = new Date(time * 1000);
@@ -69,7 +68,7 @@ export async function addMessage(channel, username, message, created_at, store=t
 		}
 		localStorage.setItem(`channel-history-${channel}`, JSON.stringify(channelMessages));
 		const currentChannel = localStorage.getItem("channel") || "1";
-		if (channel === currentChannel){
+		if (channel == currentChannel){
 			const chatWindow = document.getElementById("chat-window");
 			chatWindow.innerHTML = channelMessages.join("\n");
 			chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -84,7 +83,7 @@ async function sendMessage() {
 	const input = document.getElementById("user-input");
 	if (input.value.trim() === "") return;
 	const channel = localStorage.getItem("channel") || "1";
-	socket.send(JSON.stringify({"type":"message", "data":{channel:channel, "msg":input.value}}));
+	socket.send(JSON.stringify({"type":"message", "data":{channel:channel, "content":input.value}}));
 	input.value = "";
 }
 
@@ -176,7 +175,7 @@ function addChannelButton(e){
 	document.getElementById("add-channel-add-button").addEventListener('click', requestNewChannel);
 }
 
-async function displayChannel(id, name){
+export async function displayChannel(id, name){
 	localStorage.setItem("channel", id);
 	const chatWindow = document.getElementById("chat-window");
 	const string = localStorage.getItem(`channel-history-${id}`) || '[""]';

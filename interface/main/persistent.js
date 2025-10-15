@@ -1,4 +1,6 @@
-import { addMessage, addChannel } from "/main/scripts.js";
+import { addMessage, addChannel, displayChannel } from "/main/scripts.js";
+let socket;
+let users = {};
 
 const base_packet_types = {
     "hello": hello,
@@ -20,7 +22,7 @@ function hello(data){
 }
 
 function message(data){
-    addMessage(data.channel, data.username, data.content, data.created_at);
+    addMessage(data.channel, users[data.user_id], data.content, data.created_at);
 	localStorage.setItem('latestPostId', data.id);
 }
 
@@ -52,7 +54,7 @@ export function setupWebSocket(ws_url){
 function onMessageSocket(e){
     console.log(e.data);
     const data = JSON.parse(e.data);
-    base_packet_types[data["type"]](data["data"]); //Call whatever function the type specifies in base_packet_types.
+    if (data.type in base_packet_types) base_packet_types[data["type"]](data["data"]); //Call whatever function the type specifies in base_packet_types.
 }
 
 function onOpenSocket(e){
