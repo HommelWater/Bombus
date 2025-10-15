@@ -6,26 +6,17 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" href="./images/icon.jpg" type="image/png">
     <title>Buzz</title>
-    <link rel="stylesheet" href="./webkit.css">
-    <link rel="stylesheet" href="./styles.css">
-    <link rel="stylesheet" href="./themes.css">
+    <link rel="stylesheet" href="/shared/webkit.css">
+    <link rel="stylesheet" href="/main/styles.css">
+    <link rel="stylesheet" href="/shared/themes.css">
     
-    <script src="./scripts.js" type="module"></script>
-    <script src="./voice.js" type="module"></script>
-    <script src="./themes.js"></script>
-    <script src="./qr/qrcode.min.js"></script>
+    <script src="/main/scripts.js" type="module"></script>
+    <script src="/main/voice.js" type="module"></script>
+    <script src="/main/persistent.js" type="module"></script>
+    <script src="/shared/themes.js"></script>
     </head>
     <body>
-    <div id="login" class="login">
-        <h2 style="padding:10px">Log in to Buzz!</h2>
-        <div class="form-group" style="padding:20px;">
-            <input id="login-username" placeholder="Username"></input>
-            <input id="login-code" placeholder="Login / Invite Code"></input>
-            <button id="login-button" class="btn">Log in / Sign up</button>
-        </div>
-        <div id="qrcode"></div>
-    </div>
-    <div id="container" class="container" style="display:none;">
+    <div id="container" class="container">
         <div id ="sidebar" class="sidebar">
             <img src="./images/icon.jpg" style="width: 100%; height:auto;">
             <h2>Settings</h2>

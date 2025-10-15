@@ -1,4 +1,5 @@
-import {joinChannel, leaveChannel, currentChannel, setupVoiceChat} from "./voice.js";
+import {joinChannel, leaveChannel, currentChannel, setupVoiceChat} from "/main/voice.js";
+import { setupWebSocket } from "/main/persistent.js";
 document.addEventListener('DOMContentLoaded', onLoad);
 let socket;
 let users = {};
@@ -14,13 +15,9 @@ function timeIntToString(time){
 }
 
 function onLoad() {
-	const session = localStorage.getItem("session");
-	if (session){
-		setupConnection();
-		document.getElementById('container').style.display = "flex";
-		document.getElementById('login').style.display = "none";
-	}
-	document.getElementById('login-button').addEventListener('click', onLoginButton);
+	socket = setupWebSocket('ws://localhost:8000/persistent/ws');
+	setupVoiceChat(socket);
+	
 	document.getElementById('send-button').addEventListener('click', sendMessage);
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
 	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);
@@ -44,69 +41,20 @@ function toggleSidebar(){
 	}
 }
 
-async function setupConnection() {
-	socket = new WebSocket('ws://localhost:8000/persistent/ws');
-
-	socket.addEventListener('message', (event) => {
-		console.log(event.data);
-		const data = JSON.parse(event.data);
-		if (data.reset){
-			localStorage.setItem('session', "");
-		}
-		if (data.msg){
-			addMessage(data.channel, data.username, data.msg, data.created_at);
-			localStorage.setItem('latestPostId', data.id);
-		}
-		if (data.channels){
-			document.getElementById("channels").innerHTML = "";
-			data.channels.forEach(channel => {
-				addChannel(channel.name, channel.id, channel.connected_users);
-			});
-			localStorage.setItem('user_id', data.user_id);
-			users = data.users;
-			data.posts.reverse().forEach(post =>{
-				addMessage(post.channel, users[post.user_id], post.content, post.created_at);
-				
-			});
-			displayChannel(data.channels[0].id, data.channels[0].name);
-		}
-		if (data.type === "channel_users") {
-			document.getElementById(`channel-${data.channel_id}-users`).innerHTML = data.users.map(user => `
-            	<img src="./images/users/${user}.webp" style="width:25px; margin-right: 2px;" title="${user}">
-        	`).join('');
-		}
-		
-	});
-	socket.addEventListener('open', (event) => {
-		const session = localStorage.getItem("session");
-		const latestPostId = localStorage.getItem('latestPostId') || '0';
-		socket.send(JSON.stringify({"type":"hello", "data":{"session":session, "latest_post_id":latestPostId}}));
-		console.log('Connected to server');
-	});
-	socket.addEventListener('close', (event) => {
-		console.log('Disconnected from server');
-		location.href = "/";
-	});
-
-	socket.addEventListener('error', (event) => {
-		console.error('WebSocket error:', event);
-	});
-	setupVoiceChat(socket);
-}
-
 //Message stuff
 
-async function addMessage(channel, username, message, created_at, store=true) {
+export async function addMessage(channel, username, message, created_at, store=true) {
 	if (message.trim() === "") return;
-	const messageHTML = `
-	<div class="item_row user" style="max-width:90vw;">
-		<div class="left_item">
-			<div style="display:flex;border-bottom:1px solid var(--color-border);min-width:200px;">
+	const userDiv = `<div style="display:flex;border-bottom:1px solid var(--color-border);min-width:200px;">
 			${username}
 				<div style="margin-left:auto">
 				${timeIntToString(created_at)}
 				</div>
-			</div>
+			</div>`;
+	const messageHTML = `
+	<div class="item_row user" style="max-width:90vw;">
+		<div class="left_item">
+			${userDiv}
 			<div>
 			${message}
 			</div>
@@ -184,7 +132,7 @@ async function loadOlderMessages(chatWindow){
 
 //Channel stuff
 
-function addChannel(name, id, connected_users = []){
+export function addChannel(name, id, connected_users = []){
 	const channelsDiv = document.getElementById("channels");
 	const channelDiv = document.createElement("div");
 	channelDiv.className = "sidebar-item";
@@ -321,68 +269,4 @@ async function createInviteCode(){
 	console.log(data);
 	const inviteDiv = document.getElementById("invite-code-item");
 	inviteDiv.innerHTML = `Invite code: ${data["result"]}`;
-}
-
-function generateTOTPQRCode(secret, issuer, accountName) {
-	const totpUri = `otpauth://totp/${issuer}:${accountName}?secret=${secret}&issuer=${issuer}`;
-	var qrcode = new QRCode(document.getElementById("qrcode"), {
-		text: totpUri,
-		width: 256,
-		height: 256,
-		colorDark : "#000000",
-		colorLight : "#ffffff",
-		correctLevel : QRCode.CorrectLevel.H
-	});
-}
-
-async function onLoginButton(){
-	const codeDiv = document.getElementById('login-code');
-	const usernameDiv = document.getElementById('login-username');
-	const code = codeDiv.value;
-	const username = usernameDiv.value;
-	if (code.length > 6 || (username == "admin" && code.length == 0)){
-		signup(username, code);
-	} else {
-		login(username, code);
-	}
-	codeDiv.value = "";
-}
-
-async function signup(username, invite_code){
-	const res = await fetch('/auth/signup', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ "username":username, "invite_code":invite_code })
-	});
-	if (!res.ok) {
-		const { error } = await res.json().catch(() => ({}));
-		console.log(error);
-        return;
-	}
-	
-	const data = await res.json();
-	console.log(data);
-	generateTOTPQRCode(data["result"], "Buzz", username);
-}
-
-async function login(username, totp_code){
-	const res = await fetch('/auth/login', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ "username":username, "totp_code":totp_code })
-	});
-	if (!res.ok) {
-		const { error } = await res.json().catch(() => ({}));
-		console.log(error);
-        return;
-	}
-	
-	const data = await res.json();
-	console.log(data);
-	localStorage.setItem("session", data["result"]);
-	if (data["status"] == "success"){
-		setupConnection();
-		document.getElementById('container').style.display = "flex";
-		document.getElementById('login').style.display = "none";
-	}
 }

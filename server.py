@@ -34,7 +34,11 @@ class LoadMessagesInfo(BaseModel):
 
 @app.get("/")
 async def read_root():
-    return FileResponse("./interface/index.html")
+    return FileResponse("./interface/main/index.html")
+
+@app.get("/login")
+async def read_root():
+    return FileResponse("./interface/login/index.html")
 
 @app.post("/channel")
 async def channel(info: ChannelInfo):

@@ -21,19 +21,19 @@ async def endpoint(websocket: WebSocket):
 async def onHello(websocket: WebSocket, data, session, user):
     session_key = data.get("session")
     if not session_key:
-        await websocket.send_json({"status": "No session key provided."})
+        await websocket.send_json({"type":"error", "data":{"reset":True, "error_message":"No session key provided."}})
         await websocket.close()
         return None, None
     
     session = database.get_session(session_key)
     if not session:
-        await websocket.send_json({"status": "Invalid session.", "reset":True})
+        await websocket.send_json({"type":"error", "data":{"reset":True, "error_message":"Invalid session."}})
         await websocket.close()
         return None, None
     
     user = database.get_user_by_id(session["user_id"])
     if not user:
-        await websocket.send_json({"status": "Invalid user.", "reset":True})
+        await websocket.send_json({"type":"error", "data":{"reset":True, "error_message":"Invalid user."}})
         await websocket.close()
         return None, None
     
@@ -45,15 +45,13 @@ async def onHello(websocket: WebSocket, data, session, user):
     if recent_posts is None:
         recent_posts = []
     users = database.get_users_ids()
-    await websocket.send_json({"channels":channels, "user_id": session["user_id"], "users":users, "posts":recent_posts})
+    await websocket.send_json({"type":"hello", "data":{"user_id": session["user_id"], "users":users, "channels":channels, "posts":recent_posts}})
     return session, user
 
 async def onMessage(websocket: WebSocket, data, session, user):
-    data["username"] = user["username"]
     post_id = database.add_post(user["id"], data["channel"], data["msg"])
-    data["id"] = post_id
-    data["created_at"] = database.get_post(post_id)["created_at"]
-    await broadcast(data)
+    data = database.get_post(post_id)
+    await broadcast({"type":"message", "data":data})
     return session, user
 
 async def broadcast(json):
@@ -66,14 +64,14 @@ async def vc_offer(websocket: WebSocket, data, session, user):
     offer = data["offer"]
     target_id = data["id"]
     if user_id == target_id: return session, user    
-    await connections[target_id].send_json({"type":"offer", "offer":offer, "user_id":user_id})
+    await connections[target_id].send_json({"type":"offer", "data": {"offer":offer, "user_id":user_id}})
     return session, user
 
 async def vc_answer(websocket: WebSocket, data, session, user):
     target_user_id = data["id"]
     user_id = user["id"]
     answer = data["answer"]
-    await connections[target_user_id].send_json({"type":"answer", "answer":answer, "user_id":user_id})
+    await connections[target_user_id].send_json({"type":"answer", "data": {"answer":answer, "user_id":user_id}})
     return session, user
 
 async def vc_candidate(websocket: WebSocket, data, session, user):
@@ -81,7 +79,7 @@ async def vc_candidate(websocket: WebSocket, data, session, user):
     candidate = data["candidate"]
     target_id = data["id"]
     if target_id == user_id: return session, user
-    await connections[target_id].send_json({"type": "candidate", "candidate": candidate, "user_id": user_id})
+    await connections[target_id].send_json({"type": "candidate", "data": {"candidate": candidate, "user_id": user_id}})
     return session, user
 
 async def vc_connect(websocket: WebSocket, data, session, user):
@@ -92,9 +90,9 @@ async def vc_connect(websocket: WebSocket, data, session, user):
     
     channel_peers[channel_id].add(user_id)
     for peer in channel_peers[channel_id]:
-        await connections[peer].send_json({"type":"connect", "users":list(channel_peers[channel_id]), "current_user":peer})
+        await connections[peer].send_json({"type":"connect", "data": {"users":list(channel_peers[channel_id]), "current_user":peer}})
     
-    await broadcast({"type":"channel_users", "channel_id":channel_id, "users":list(channel_peers[channel_id])})
+    await broadcast({"type":"vc_users", "data": {"channel_id":channel_id, "users":list(channel_peers[channel_id])}})
     return session, user
 
 async def vc_disconnect(websocket: WebSocket, data, session, user):
@@ -103,9 +101,9 @@ async def vc_disconnect(websocket: WebSocket, data, session, user):
 
     for peer in channel_peers[channel_id]:
         if user_id == peer: continue
-        await connections[peer].send_json({"type":"disconnect", "user":[user_id]})
+        await connections[peer].send_json({"type":"disconnect", "data": {"user":[user_id]}})
     channel_peers[channel_id].remove(user_id)
-    await broadcast({"type":"channel_users", "channel_id":channel_id, "users":list(channel_peers[channel_id])})
+    await broadcast({"type":"vc_users", "data": {"channel_id":channel_id, "users":list(channel_peers[channel_id])}})
     return session, user
 
 base_packet_types = {
