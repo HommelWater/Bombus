@@ -1,4 +1,4 @@
-let socket;
+import { socket } from "/main/persistent.js";
 export let currentChannel = -1;
 const peerConnections = new Map();
 let localStream;
@@ -60,8 +60,7 @@ export function leaveChannel() {
     currentChannel = -1;
 }
 
-export function setupVoiceChat(ws){
-    socket = ws;
+export function onLoadVoice(){
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.type in voice_packet_types) voice_packet_types[data.type](data.data);

@@ -1,6 +1,11 @@
-import { addMessage, addChannel, displayChannel } from "/main/scripts.js";
-let socket;
+
+import { displayChannel, loadChannels } from "/main/channels.js";
+export let socket;
+export let user_id;
 export let users = {};
+export let channels = {};
+export let selected_channel = 1;
+export let latest_post = 0;
 
 const base_packet_types = {
     "hello": hello,
@@ -10,20 +15,30 @@ const base_packet_types = {
 }
 
 function hello(data){
-    localStorage.setItem('user_id', data.user_id);
+    user_id = data.user_id;
     users = data.users;
+    channels = data.channels;
 
-    document.getElementById("channels").innerHTML = "";
-    data.channels.forEach(channel => 
-        addChannel(channel.name, channel.id, channel.connected_users));
-    data.posts.reverse().forEach(post => 
-        addMessage(post.channel, users[post.user_id], post.content, post.created_at));
-    displayChannel(data.channels[0].id, data.channels[0].name);
+    loadChannels(channels);
+    data.posts.reverse().forEach(post => message(post));
+    displayChannel(channels[selected_channel]);
 }
 
 function message(data){
-    addMessage(data.channel, users[data.user_id], data.content, data.created_at);
-	localStorage.setItem('latestPostId', data.id);
+    if (!channels[data.channel].posts) {
+        channels[data.channel].posts = [data];
+        return;
+    }
+    let lastPost = channels[data.channel].posts[channels[data.channel].posts.length - 1];
+    if (lastPost.username === data.username && lastPost.created_at > (data.created_at - 60)){
+        channels[data.channel].posts[channels[data.channel].posts.length - 1].content += `<br>${data.content}`;
+    } else {
+        channels[data.channel].posts.push(data);
+    }
+    latest_post = data.id;
+    if (selected_channel === data.channel){
+        displayChannel(channels[data.channel]);
+    }
 }
 
 function error(data){
@@ -42,13 +57,20 @@ function vc_users(data){
 
 
 //Websocket setup.
-export function setupWebSocket(ws_url){
+export function onLoadPersistent(ws_url){
 	socket = new WebSocket(ws_url);
     socket.addEventListener('open', onOpenSocket);
     socket.addEventListener('message', onMessageSocket);
     socket.addEventListener('close', onCloseSocket);
     socket.addEventListener('error', onErrorSocket);
-    return socket;
+    document.getElementById('send-button').addEventListener('click', sendMessage);
+}
+
+async function sendMessage() {
+	const input = document.getElementById("user-input");
+	if (input.value.trim() === "") return;
+	socket.send(JSON.stringify({"type":"message", "data":{channel:selected_channel, "content":input.value}}));
+	input.value = "";
 }
 
 function onMessageSocket(e){
@@ -58,8 +80,7 @@ function onMessageSocket(e){
 
 function onOpenSocket(e){
     const session = localStorage.getItem("session");
-    const latestPostId = localStorage.getItem('latestPostId') || '0';
-    socket.send(JSON.stringify({"type":"hello", "data":{"session":session, "latest_post_id":latestPostId}}));
+    socket.send(JSON.stringify({"type":"hello", "data":{"session":session, "latest_post_id":latest_post}}));
     console.log('Connected to server');
 }
 
