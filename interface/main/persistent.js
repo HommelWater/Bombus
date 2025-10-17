@@ -30,7 +30,7 @@ function message(data){
         channel.posts = [data];
         return;
     }
-    let lastPost = channels[data.channel].posts[channels[data.channel].posts.length - 1];
+    let lastPost = channel.posts[channel.posts.length - 1];
     if (lastPost.username === data.username && lastPost.created_at > (data.created_at - 60)){
         channel.posts[channel.posts.length - 1].content += `<br>${data.content}`;
     } else {
