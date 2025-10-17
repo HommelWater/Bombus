@@ -21,24 +21,40 @@ function hello(data){
 
     loadChannels(channels);
     data.posts.reverse().forEach(post => message(post));
-    displayChannel(channels[selected_channel]);
+    displayChannel(channels[selected_channel - 1]);
 }
 
 function message(data){
-    const channel = channels[data.channel - 1]
+    const channel = channels[data.channel - 1];
+    data.username = users[data.user_id];
     if (!channel.posts) {
         channel.posts = [data];
         return;
     }
-    let lastPost = channel.posts[channel.posts.length - 1];
+    const lastPost = channel.posts[channel.posts.length - 1];
     if (lastPost.username === data.username && lastPost.created_at > (data.created_at - 60)){
-        channel.posts[channel.posts.length - 1].content += `<br>${data.content}`;
+        lastPost.content += `<br>${data.content}`;
     } else {
         channel.posts.push(data);
     }
     latest_post = data.id;
     if (selected_channel === data.channel){
         displayChannel(channel);
+    }
+}
+
+export function old_message(data){
+    const channel = channels[data.channel - 1];
+    data.username = users[data.user_id];
+    if (!channel.posts) {
+        channel.posts = [data];
+        return;
+    }
+    let firstPost = channel.posts[0];
+    if (firstPost.username === data.username && data.created_at > (firstPost.created_at - 60)){
+        firstPost.content = `${data.content}<br>${firstPost.content}`;
+    } else {
+        channel.posts.unshift(data);
     }
 }
 

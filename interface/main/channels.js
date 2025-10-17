@@ -1,6 +1,6 @@
-import { channels, selected_channel } from "/main/persistent.js";
+import { channels, selected_channel, old_message } from "/main/persistent.js";
 import { requestOlderMessages } from "/main/requests.js";
-import { currentChannel } from "/main/voice.js";
+import { currentChannel, joinChannel, leaveChannel } from "/main/voice.js";
 
 function timeIntToString(time){
 	const date = new Date(time * 1000);
@@ -36,7 +36,6 @@ function onChannelListClick(event){
     const channelItem = event.target.closest('.sidebar-item');
     if (channelItem) {
         const channelId = channelItem.dataset.channelId;
-        console.log(channelId);
         displayChannel(channels[channelId - 1]);
     }
     
@@ -148,7 +147,8 @@ async function loadOlderMessages(chatWindow){
         return;
     }
 
-    const postDivs = data.result.map(createPostDiv);
+    data.result.forEach(post => old_message(post));
+    displayChannel(channels[selected_channel - 1]);
     //chatWindow.innerHTML = postDivs.join("") + chatWindow.innerHTML;
 
     const newScrollHeight = chatWindow.scrollHeight;
