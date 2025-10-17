@@ -36,6 +36,7 @@ function onChannelListClick(event){
     const channelItem = event.target.closest('.sidebar-item');
     if (channelItem) {
         const channelId = channelItem.dataset.channelId;
+        console.log(channelId);
         displayChannel(channels[channelId]);
     }
     
@@ -89,8 +90,10 @@ export function loadChannels(channels){
 }
 
 export function displayChannel(channel){
+    if(!channel) return;
     localStorage.setItem("channel", channel.id);
     const chatWindow = document.getElementById("chat-window");
+    if (!channel.posts) channel.posts = [];
     const messageDivs = channel.posts.map(createPostDiv);
     chatWindow.innerHTML = messageDivs.join("");
     document.getElementById('chat-header-text').innerText = channel.name;

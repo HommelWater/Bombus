@@ -25,19 +25,20 @@ function hello(data){
 }
 
 function message(data){
-    if (!channels[data.channel].posts) {
-        channels[data.channel].posts = [data];
+    const channel = channels[data.channel - 1]
+    if (!channel.posts) {
+        channel.posts = [data];
         return;
     }
     let lastPost = channels[data.channel].posts[channels[data.channel].posts.length - 1];
     if (lastPost.username === data.username && lastPost.created_at > (data.created_at - 60)){
-        channels[data.channel].posts[channels[data.channel].posts.length - 1].content += `<br>${data.content}`;
+        channel.posts[channel.posts.length - 1].content += `<br>${data.content}`;
     } else {
-        channels[data.channel].posts.push(data);
+        channel.posts.push(data);
     }
     latest_post = data.id;
     if (selected_channel === data.channel){
-        displayChannel(channels[data.channel]);
+        displayChannel(channel);
     }
 }
 

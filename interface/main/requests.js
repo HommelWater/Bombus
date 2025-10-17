@@ -73,7 +73,7 @@ export async function requestNewChannel(){
 	console.log(data);
 }
 
-export async function requestOlderMessages(){
+export async function requestOlderMessages(session, channelId, oldestMessage){
     const res = await fetch('/load_messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
