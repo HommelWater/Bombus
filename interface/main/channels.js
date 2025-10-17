@@ -37,7 +37,7 @@ function onChannelListClick(event){
     if (channelItem) {
         const channelId = channelItem.dataset.channelId;
         console.log(channelId);
-        displayChannel(channels[channelId]);
+        displayChannel(channels[channelId - 1]);
     }
     
     const joinButton = event.target.closest('.join-channel-button');
