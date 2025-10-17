@@ -59,8 +59,6 @@ async function login(username, totp_code){
 	console.log(data);
 	localStorage.setItem("session", data["result"]);
 	if (data["status"] == "success"){
-		setupConnection();
-		document.getElementById('container').style.display = "flex";
-		document.getElementById('login').style.display = "none";
+		location.href = "/";
 	}
 }
