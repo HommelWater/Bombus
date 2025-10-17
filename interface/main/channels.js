@@ -140,7 +140,7 @@ async function loadOlderMessages(chatWindow){
 
     const session = localStorage.getItem("session");
     
-    const data = requestOlderMessages(session, selected_channel, oldestMessage);
+    const data = await requestOlderMessages(session, selected_channel, oldestMessage);
     oldestMessage += 50;
 
     if (data.result.length == 0){
@@ -149,7 +149,7 @@ async function loadOlderMessages(chatWindow){
     }
 
     const postDivs = data.result.map(createPostDiv);
-    chatWindow.innerHTML = postDivs.join("/n") + chatWindow.innerHTML;
+    //chatWindow.innerHTML = postDivs.join("") + chatWindow.innerHTML;
 
     const newScrollHeight = chatWindow.scrollHeight;
     chatWindow.scrollTop = oldScrollTop + (newScrollHeight - oldScrollHeight);
