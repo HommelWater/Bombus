@@ -1,11 +1,10 @@
 
-import { displayChannel, loadChannels, createVoiceChannelUserDiv, joinChannelVC } from "/main/channels.js";
+import { selected_channel, displayChannel, loadChannels, createVoiceChannelUserDiv, joinChannelVC } from "/main/channels.js";
 import { currentVoiceChannel } from "/main/voice.js";
 export let socket;
 export let user_id;
 export let users = {};
 export let channels = {};
-export let selected_channel = 1;
 export let latest_post = 0;
 
 const base_packet_types = {
@@ -18,11 +17,13 @@ const base_packet_types = {
 function hello(data){
     user_id = data.user_id;
     users = data.users;
-    channels = data.channels;    
+    data.channels.forEach(channel => {
+        channels[channel.id] = channel;
+    });
     loadChannels(channels);
     data.posts.reverse().forEach(post => message(post));
-    displayChannel(channels[selected_channel - 1]);
-    channels.forEach(channel=>{
+    displayChannel(channels[selected_channel]);
+    Object.values(channels).forEach(channel=>{
         channel.connected_users.forEach(user=>{
             if (user === user_id){
                 joinChannelVC(channel.id);
@@ -32,7 +33,7 @@ function hello(data){
 }
 
 function message(data){
-    const channel = channels[data.channel - 1];
+    const channel = channels[data.channel];
     data.username = users[data.user_id];
     if (!channel.posts) {
         channel.posts = [data];
@@ -51,7 +52,7 @@ function message(data){
 }
 
 export function old_message(data){
-    const channel = channels[data.channel - 1];
+    const channel = channels[data.channel];
     data.username = users[data.user_id];
     if (!channel.posts) {
         channel.posts = [data];

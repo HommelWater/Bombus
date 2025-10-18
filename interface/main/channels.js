@@ -1,6 +1,7 @@
-import { channels, selected_channel, old_message } from "/main/persistent.js";
+import { channels, old_message } from "/main/persistent.js";
 import { requestOlderMessages } from "/main/requests.js";
 import { currentVoiceChannel, joinChannel, leaveChannel } from "/main/voice.js";
+export let selected_channel = 1;
 
 function timeIntToString(time){
 	const date = new Date(time * 1000);
@@ -17,7 +18,7 @@ export function onLoadChannels(){
     document.getElementById("channels").addEventListener('click', onChannelListClick);
     const chatWindow = document.getElementById('chat-window');
 	chatWindow.addEventListener("scroll", () => {
-		if (chatWindow.scrollTop < 100) {
+		if (chatWindow.scrollTop < 1) {
 			loadOlderMessages(chatWindow);
 		}
 	});
@@ -36,7 +37,7 @@ function onChannelListClick(event){
     const channelItem = event.target.closest('.sidebar-item');
     if (channelItem) {
         const channelId = channelItem.dataset.channelId;
-        displayChannel(channels[channelId - 1]);
+        displayChannel(channels[channelId]);
     }
     
     const joinButton = event.target.closest('.join-channel-button');
@@ -64,7 +65,7 @@ export function createVoiceChannelUserDiv(user, channel){
     const html = `
     <div class="vc-user" style="display:flex;">
         <img src="./images/users/${user}.webp" style="width:25px;height:25px; margin-right: 2px;" title="${user}">
-        ${channel === currentVoiceChannel ? `<input type="range" min="1" max="100" value="100" class="slider" id="volume-${user}">` : ""}
+        <input type="range" min="1" max="100" value="100" class="slider" id="volume-${user}">
     </div>
     `; 
     return html
@@ -82,7 +83,7 @@ function createChannelDiv(channel){
                 🎤
             </div>
         </div>
-        <div id="channel-${id}-users" style="${channel === currentVoiceChannel ? `display:flex;` : ``}">
+        <div id="channel-${id}-users" style="">
             ${channel.connected_users.map(createVoiceChannelUserDiv).join('')}
         </div>
     </div>`;
@@ -91,13 +92,13 @@ function createChannelDiv(channel){
 
 export function loadChannels(channels){
     const channelList = document.getElementById('channels');
-    const channelDivs = channels.map(createChannelDiv);
+    const channelDivs = Object.values(channels).map(createChannelDiv);
     channelList.innerHTML = channelDivs.join('');
 }
 
 export function displayChannel(channel){
     if(!channel) return;
-    localStorage.setItem("channel", channel.id);
+    selected_channel = channel.id;
     const chatWindow = document.getElementById("chat-window");
     if (!channel.posts) channel.posts = [];
     const messageDivs = channel.posts.map(createPostDiv);
@@ -110,7 +111,9 @@ export function displayChannel(channel){
         }
     });
     document.getElementById(`channel-${channel.id}`).style.background = "var(--color-button-h)";
-	hasMore = true;
+    if (channel.posts.length <=50){
+        hasMore = true;
+    }
 }
 
 function createPostDiv(post){
@@ -155,8 +158,7 @@ async function loadOlderMessages(chatWindow){
     }
 
     data.result.forEach(post => old_message(post));
-    displayChannel(channels[selected_channel - 1]);
-    //chatWindow.innerHTML = postDivs.join("") + chatWindow.innerHTML;
+    displayChannel(channels[selected_channel]);
 
     const newScrollHeight = chatWindow.scrollHeight;
     chatWindow.scrollTop = oldScrollTop + (newScrollHeight - oldScrollHeight);
