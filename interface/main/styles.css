@@ -275,3 +275,10 @@ input[type="file"] {
   cursor: pointer; /* Cursor on hover */
   border-radius: 0px;
 }
+
+
+img {
+	height:auto;
+	width:auto;
+	max-height:500px;
+}

@@ -105,7 +105,6 @@ export function displayChannel(channel){
     const messageDivs = channel.posts.map(createPostDiv);
     chatWindow.innerHTML = messageDivs.join("");
     document.getElementById('chat-header-text').innerText = channel.name;
-	chatWindow.scrollTop = chatWindow.scrollHeight;
 	document.getElementById('channels').childNodes.forEach((child) => {
         if (child.style){
             child.style.background = "var(--color-items)";
@@ -115,6 +114,7 @@ export function displayChannel(channel){
     if (channel.posts.length <=50){
         hasMore = true;
     }
+    setTimeout(() => {chatWindow.scrollTop = chatWindow.scrollHeight;}, 20);
 }
 
 function createPostDiv(post){
