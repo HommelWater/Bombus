@@ -18,7 +18,7 @@ export function onLoadChannels(){
     document.getElementById("channels").addEventListener('click', onChannelListClick);
     const chatWindow = document.getElementById('chat-window');
 	chatWindow.addEventListener("scroll", () => {
-		if (chatWindow.scrollTop < 1) {
+		if (chatWindow.scrollTop < 50) {
 			loadOlderMessages(chatWindow);
 		}
 	});
