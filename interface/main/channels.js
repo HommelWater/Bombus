@@ -1,6 +1,6 @@
 import { channels, selected_channel, old_message } from "/main/persistent.js";
 import { requestOlderMessages } from "/main/requests.js";
-import { currentChannel, joinChannel, leaveChannel } from "/main/voice.js";
+import { currentVoiceChannel, joinChannel, leaveChannel } from "/main/voice.js";
 
 function timeIntToString(time){
 	const date = new Date(time * 1000);
@@ -12,7 +12,7 @@ function timeIntToString(time){
 	return `${hours}:${minutes} ${day}-${month}-${year}`;
 }
 
-export function onLoadMessages(){
+export function onLoadChannels(){
     document.getElementById("sidebar-button").addEventListener('click', toggleSidebar);
     document.getElementById("channels").addEventListener('click', onChannelListClick);
     const chatWindow = document.getElementById('chat-window');
@@ -43,18 +43,31 @@ function onChannelListClick(event){
     if (joinButton) {
         event.stopPropagation();
         const channelId = joinButton.closest('.sidebar-item').dataset.channelId;
-        
-        document.querySelectorAll(".join-channel-button").forEach((element) => {
-            element.innerHTML = "🎤";
-        });
-        
-        if (currentChannel == channelId) {
-            leaveChannel();
-        } else {
-            joinChannel(channelId);
-            joinButton.innerHTML = "✖";
-        }
+        joinChannelVC(channelId);
     }
+}
+
+export function joinChannelVC(channelId){
+    const joinButton = document.getElementById(`channel-${channelId}-join-button`);
+    document.querySelectorAll(".join-channel-button").forEach((element) => {
+        element.innerHTML = "🎤";
+    });
+    if (currentVoiceChannel == channelId) {
+        leaveChannel();
+    } else {
+        joinChannel(channelId);
+        joinButton.innerHTML = "✖";
+    }
+}
+
+export function createVoiceChannelUserDiv(user, channel){
+    const html = `
+    <div class="vc-user" style="display:flex;">
+        <img src="./images/users/${user}.webp" style="width:25px;height:25px; margin-right: 2px;" title="${user}">
+        ${channel === currentVoiceChannel ? `<input type="range" min="1" max="100" value="100" class="slider" id="volume-${user}">` : ""}
+    </div>
+    `; 
+    return html
 }
 
 function createChannelDiv(channel){
@@ -69,14 +82,8 @@ function createChannelDiv(channel){
                 🎤
             </div>
         </div>
-        <div id="channel-${id}-users" style="display: flex;">
-            ${channel.connected_users.map(user => `
-                <img 
-                    src="./images/users/${user}.webp" 
-                    style="width: 25px; margin-right: 2px;" 
-                    title="${user}"
-                >
-            `).join('')}
+        <div id="channel-${id}-users" style="${channel === currentVoiceChannel ? `display:flex;` : ``}">
+            ${channel.connected_users.map(createVoiceChannelUserDiv).join('')}
         </div>
     </div>`;
     return channelHTML;

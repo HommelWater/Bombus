@@ -40,7 +40,8 @@ async def onHello(websocket: WebSocket, data, session, user):
     connections[user["id"]] = websocket
     channels = database.get_channels()
     for i in range(len(channels)):
-        channels[i]["connected_users"] = list(channel_peers.get(i, ()))
+        channel_id = str(channels[i]["id"])
+        channels[i]["connected_users"] = list(channel_peers.get(channel_id, ()))
     recent_posts = database.recent_posts_per_channel(since_id=data["latest_post_id"])
     if recent_posts is None:
         recent_posts = []
@@ -96,11 +97,14 @@ async def vc_connect(websocket: WebSocket, data, session, user):
     return session, user
 
 async def vc_disconnect(websocket: WebSocket, data, session, user):
-    channel_id = data.get("channel_id")
     user_id = user["id"]
-
+    for k, v in channel_peers.items():
+        if user_id in v:
+            channel_id = str(k)
+    if channel_id is None:
+        print(f"Disconnect for user {user_id} while not in a channel.")
+        return session, user
     for peer in channel_peers[channel_id]:
-        if user_id == peer: continue
         await connections[peer].send_json({"type":"disconnect", "data": {"user_id":user_id}})
     channel_peers[channel_id].remove(user_id)
     await broadcast({"type":"vc_users", "data": {"channel_id":channel_id, "users":list(channel_peers[channel_id])}})

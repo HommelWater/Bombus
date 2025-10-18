@@ -1,0 +1,7 @@
+make client and server more stable
+sound effects
+nicer themes
+per user color
+search
+user list
+rewrite backend in c

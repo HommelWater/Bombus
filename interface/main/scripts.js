@@ -1,14 +1,14 @@
 import { onLoadVoice } from "/main/voice.js";
 import { requestNewChannel, onLoadRequests } from "/main/requests.js";
 import { onLoadPersistent } from "/main/persistent.js";
-import { onLoadMessages } from "/main/channels.js";
+import { onLoadChannels } from "/main/channels.js";
 document.addEventListener('DOMContentLoaded', onLoad);
 
 function onLoad() {
 	onLoadPersistent('ws://localhost:8000/persistent/ws');
 	onLoadVoice();
 	onLoadRequests();
-	onLoadMessages();
+	onLoadChannels();
 	
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
 	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);

@@ -1,7 +1,7 @@
 import { socket } from "/main/persistent.js";
-export let currentChannel = -1;
+export let currentVoiceChannel = -1;
 const peerConnections = new Map();
-let localStream;
+let localStream; 
 
 async function createOfferFor(targetUserId) {
     const pc = new RTCPeerConnection();
@@ -34,9 +34,10 @@ async function createOfferFor(targetUserId) {
 }
 
 export async function joinChannel(channelId) {
-    if (currentChannel != -1){
+    if (channelId === -1) return; 
+    if (currentVoiceChannel != -1){
         leaveChannel();
-        if (channelId == currentChannel) return;
+        if (channelId == currentVoiceChannel) return;
     }
     if (!localStream){
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -45,19 +46,20 @@ export async function joinChannel(channelId) {
         "type": "vc_connect",
         "data": {"channel_id": channelId}
     }));
-    currentChannel = channelId;
+    currentVoiceChannel = channelId;
 }
 
 export function leaveChannel() {
+    if (currentVoiceChannel == -1) return;
     socket.send(JSON.stringify({
         "type": "vc_disconnect",
-        "data": {"channel_id": currentChannel}
+        "data": {}
     }));
     
     // Close all peer connections
     peerConnections.forEach(pc => pc.close());
     peerConnections.clear();
-    currentChannel = -1;
+    currentVoiceChannel = -1;
 }
 
 export function onLoadVoice(){

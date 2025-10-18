@@ -1,5 +1,6 @@
 
-import { displayChannel, loadChannels } from "/main/channels.js";
+import { displayChannel, loadChannels, createVoiceChannelUserDiv, joinChannelVC } from "/main/channels.js";
+import { currentVoiceChannel } from "/main/voice.js";
 export let socket;
 export let user_id;
 export let users = {};
@@ -17,11 +18,17 @@ const base_packet_types = {
 function hello(data){
     user_id = data.user_id;
     users = data.users;
-    channels = data.channels;
-
+    channels = data.channels;    
     loadChannels(channels);
     data.posts.reverse().forEach(post => message(post));
     displayChannel(channels[selected_channel - 1]);
+    channels.forEach(channel=>{
+        channel.connected_users.forEach(user=>{
+            if (user === user_id){
+                joinChannelVC(channel.id);
+            }
+        })
+    })
 }
 
 function message(data){
@@ -67,9 +74,9 @@ function error(data){
 }
 
 function vc_users(data){
-    document.getElementById(`channel-${data.channel_id}-users`).innerHTML = data.users.map(user => `
-        <img src="./images/users/${user}.webp" style="width:25px; margin-right: 2px;" title="${user}">
-    `).join('');
+    const channelDiv = document.getElementById(`channel-${data.channel_id}-users`)
+    channelDiv.innerHTML = data.users.map(createVoiceChannelUserDiv).join('');
+    channelDiv.style =`${data.channel_id === currentVoiceChannel ? `display:flex;` : ``}`
 }
 
 
@@ -91,6 +98,7 @@ async function sendMessage() {
 }
 
 function onMessageSocket(e){
+    console.log(e.data);
     const data = JSON.parse(e.data);
     if (data.type in base_packet_types) base_packet_types[data["type"]](data["data"]); //Call whatever function the type specifies in base_packet_types.
 }
@@ -99,6 +107,9 @@ function onOpenSocket(e){
     const session = localStorage.getItem("session");
     socket.send(JSON.stringify({"type":"hello", "data":{"session":session, "latest_post_id":latest_post}}));
     console.log('Connected to server');
+    if (currentVoiceChannel != -1){
+
+    }
 }
 
 function onCloseSocket(e){
