@@ -1,4 +1,5 @@
 make client and server more stable
+reactive web app
 sound effects
 nicer themes
 per user color

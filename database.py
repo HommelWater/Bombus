@@ -112,7 +112,6 @@ def get_post(post_id):
             (post_id,)
         )
         row = cursor.fetchone()
-        print(row)
         if row:
             return {
                 'id': row[0],
@@ -132,6 +131,7 @@ def create_session(session_key: str, user_id: int) -> int:
             VALUES (?, ?)""",
             (session_key, user_id)
         )
+        print(cursor.lastrowid)
         return cursor.lastrowid
 
 def get_session(session_key:str):
@@ -199,6 +199,26 @@ def get_user(username: str) -> Optional[Dict[str, Any]]:
                 'verified': row[5]
             }
         return None
+    
+def get_users() -> Optional[Dict[str, Any]]:
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users",
+            ()
+        )
+        rows = cursor.fetchall()
+        users = []
+        if rows:
+            for row in rows:
+                 users.append({
+                    'id': row[0],
+                    'referer_id': row[1],
+                    'username': row[2],
+                    'created_at': row[4],
+                    'verified': row[5]
+                })
+        return users
     
 def get_user_by_id(id: str) -> Optional[Dict[str, Any]]:
     """Get user data"""

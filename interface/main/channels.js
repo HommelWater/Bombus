@@ -65,14 +65,15 @@ export function createVoiceChannelUserDiv(user, channel){
     const html = `
     <div class="vc-user" style="display:flex;">
         <img src="./images/users/${user}.webp" style="width:25px;height:25px; margin-right: 2px;" title="${user}">
-        <input type="range" min="1" max="100" value="100" class="slider" id="volume-${user}">
+        <input type="range" min="1" max="100" value="100" class="slider volume-${channel}" id="volume-${user}">
     </div>
-    `; 
+    `;
     return html
 }
 
 function createChannelDiv(channel){
     const id = channel.id;
+    console.log(id);
     const channelHTML = `
     <div id="channel-${id}" data-channel-id="${id}" class="sidebar-item">
         <div style="display: flex;">
@@ -83,8 +84,8 @@ function createChannelDiv(channel){
                 🎤
             </div>
         </div>
-        <div id="channel-${id}-users" style="">
-            ${channel.connected_users.map(createVoiceChannelUserDiv).join('')}
+        <div id="channel-${id}-users" style="display:flex;">
+            ${channel.connected_users.map(user=>createVoiceChannelUserDiv(user, channel.id)).join('')}
         </div>
     </div>`;
     return channelHTML;

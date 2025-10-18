@@ -1,6 +1,7 @@
 
 import { selected_channel, displayChannel, loadChannels, createVoiceChannelUserDiv, joinChannelVC } from "/main/channels.js";
 import { currentVoiceChannel } from "/main/voice.js";
+import { loadUsers, setActivity } from "/main/users.js";
 export let socket;
 export let user_id;
 export let users = {};
@@ -10,13 +11,21 @@ export let latest_post = 0;
 const base_packet_types = {
     "hello": hello,
     "message": message,
+    "activity":activity,
     "error":error,
     "vc_users":vc_users
 }
 
+function activity(data){
+    setActivity(data.user_id, data.active);
+}
+
 function hello(data){
     user_id = data.user_id;
-    users = data.users;
+    data.users.forEach(user=>{
+        users[user.id] = user;
+    });
+    loadUsers(data.users);
     data.channels.forEach(channel => {
         channels[channel.id] = channel;
     });
@@ -34,7 +43,7 @@ function hello(data){
 
 function message(data){
     const channel = channels[data.channel];
-    data.username = users[data.user_id];
+    data.username = users[data.user_id].username;
     if (!channel.posts) {
         channel.posts = [data];
         return;
@@ -53,7 +62,7 @@ function message(data){
 
 export function old_message(data){
     const channel = channels[data.channel];
-    data.username = users[data.user_id];
+    data.username = users[data.user_id].username;
     if (!channel.posts) {
         channel.posts = [data];
         return;
@@ -76,8 +85,12 @@ function error(data){
 
 function vc_users(data){
     const channelDiv = document.getElementById(`channel-${data.channel_id}-users`)
-    channelDiv.innerHTML = data.users.map(createVoiceChannelUserDiv).join('');
-    channelDiv.style =`${data.channel_id === currentVoiceChannel ? `display:flex;` : ``}`
+    channelDiv.innerHTML = data.users.map(user=>createVoiceChannelUserDiv(user, data.channel_id)).join('');
+    channelDiv.style =`${data.channel_id === currentVoiceChannel ? `` : `display:flex;`}`
+    document.querySelectorAll(`.slider`).forEach(d=>d.style.display = "none");
+    if (data.channel_id === currentVoiceChannel){
+        document.querySelectorAll(`.volume-${data.channel_id}`).forEach(d=>d.style.display = "inline-block");
+    }
 }
 
 
@@ -99,8 +112,8 @@ async function sendMessage() {
 }
 
 function onMessageSocket(e){
-    console.log(e.data);
     const data = JSON.parse(e.data);
+    console.log(data);
     if (data.type in base_packet_types) base_packet_types[data["type"]](data["data"]); //Call whatever function the type specifies in base_packet_types.
 }
 
@@ -108,14 +121,11 @@ function onOpenSocket(e){
     const session = localStorage.getItem("session");
     socket.send(JSON.stringify({"type":"hello", "data":{"session":session, "latest_post_id":latest_post}}));
     console.log('Connected to server');
-    if (currentVoiceChannel != -1){
-
-    }
 }
 
 function onCloseSocket(e){
     console.log('Disconnected from server');
-	location.href = "/";
+    socket.send(JSON.stringify({"type":"activity", "data":{"active":false}}))
 }
 
 function onErrorSocket(e){
