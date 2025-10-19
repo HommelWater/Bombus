@@ -22,3 +22,15 @@ export function loadUsers(users){
 export function setActivity(user_id, active){
     document.getElementById(`user-${user_id}-activity`).innerHTML = active ? "🟢" : "🔴";
 }
+
+function createUserSettingsDiv(user){
+    const settingsHTML = `
+        <div id="user-${user.id}-settings" class="rclick-settings">
+            <div id="ban-user" class="user-setting"></div>
+            <div id="restrict-user" class="user-setting"></div>
+            <div id="rename-user" class="user-setting"></div>
+            <div id="delete-pfp-user" class="user-setting"></div>
+        </div>
+    `;
+    return settingsHTML;
+}

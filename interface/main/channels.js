@@ -126,12 +126,13 @@ function createPostDiv(post){
             ${timeIntToString(post.created_at)}
             </div>
         </div>`;
+    
 	const messageHTML = `
-	<div class="item_row user" style="max-width:90vw;">
+	<div id="post-${post.id}" class="item_row user" style="max-width:90vw;">
 		<div class="left_item">
 			${userDiv}
 			<div>
-			${post.content}
+			    ${post.content}
 			</div>
 		</div>
 	</div>`;
