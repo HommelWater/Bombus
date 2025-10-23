@@ -13,6 +13,7 @@ function onLoad() {
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
 	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);
 	document.getElementById("search-button").addEventListener('click', search);
+	document.getElementById("main-image").addEventListener('click', e => {location.href = "/"});
 }
 
 function addChannelButton(e){
