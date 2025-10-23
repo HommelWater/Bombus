@@ -30,7 +30,7 @@ function hello(data){
     data.channels.forEach(channel => {
         channels[channel.id] = channel;
     });
-    channels[-1] = {"connected_users":[], "id":"search", "name":"Search", "posts":[]};
+    channels[-1] = {"connected_users":[], "id":-1, "name":"Search", "posts":[]};
     loadChannels(channels);
     data.posts.reverse().forEach(post => message(post));
     displayChannel(channels[selected_channel]);
@@ -50,7 +50,7 @@ export function setPosts(channel_id, posts){
 function message(data){
     new_message(data)
     if (selected_channel === data.channel){
-        displayChannel(channels[data.channel]);
+        displayChannel(channels[data.channel], -1);
     }
 }
 

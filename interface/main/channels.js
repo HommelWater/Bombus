@@ -79,7 +79,7 @@ function createChannelDiv(channel){
     const id = channel.id;
     console.log(id);
     const channelHTML = `
-    <div id="channel-${id}" data-channel-id="${id}" class="sidebar-item">
+    <div id="channel-${id}" data-channel-id="${id}" class="sidebar-item" ${channel.id == -1 ? `style="display:none"`:``}>
         <div style="display: flex;">
             <div id="channel-${id}-name" style="margin-top: auto; margin-bottom: auto;">
                 ${channel.name}
@@ -148,9 +148,8 @@ async function displayPost(post_id){
     const result = await requestPostContext(post_id);
     if(!result || result.status !== "success") return;
     const posts = result.result.posts;
-    const channel_id = result.result.channel_id;
-    setPosts(channel_id, posts);
-    displayChannel(channels[channel_id], post_id);
+    setPosts(-1, posts);
+    displayChannel(channels[-1], post_id);
 }
 
 function createPostDiv(post){
