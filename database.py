@@ -58,20 +58,112 @@ def init_database():
             CREATE INDEX IF NOT EXISTS idx_posts_channel_created_at ON posts(channel, created_at DESC);
         ''')
 
-def get_posts_from_offset(channel_id, offset_m, limit_n):
+def search_posts(channel_id: int, query: str, limit: int = 50):
     with sqlite3.connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.execute('''
-            SELECT *
-            FROM posts
-            WHERE channel = ?
-            ORDER BY created_at DESC
-            LIMIT ? OFFSET ?
-        ''', (channel_id, limit_n, offset_m))
-        
-        posts = []
-        for row in cursor:
-            posts.append(dict(row))
+        SELECT p.*, u.username
+        FROM posts p
+        JOIN users u ON p.user_id = u.id
+        WHERE p.channel = ?
+          AND p.content LIKE ?
+        ORDER BY p.created_at DESC
+        LIMIT ?
+        ''', (channel_id, f'%{query}%', limit))
+
+        columns = [col[0] for col in cursor.description]
+        posts = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return posts
+
+
+#gpt function :(
+def get_neighboring_posts(post_id: int, n_before: int = 5, n_after: int = 5): 
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+
+        # Get the channel of the reference post
+        channel_row = conn.execute(
+            "SELECT channel FROM posts WHERE id = ?", (post_id,)
+        ).fetchone()
+        if channel_row is None:
+            return None
+        channel_id = channel_row["channel"]
+
+        # Get posts before (descending order)
+        before_cursor = conn.execute('''
+            SELECT p.*, u.username
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            WHERE p.channel = ?
+              AND p.id < ?
+            ORDER BY p.id DESC
+            LIMIT ?
+        ''', (channel_id, post_id, n_before))
+        before_posts = before_cursor.fetchall()
+
+        # Get the reference post itself
+        current_cursor = conn.execute('''
+            SELECT p.*, u.username
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            WHERE p.id = ?
+        ''', (post_id,))
+        current_post = current_cursor.fetchone()
+
+        # Get posts after (ascending order)
+        after_cursor = conn.execute('''
+            SELECT p.*, u.username
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            WHERE p.channel = ?
+              AND p.id > ?
+            ORDER BY p.id ASC
+            LIMIT ?
+        ''', (channel_id, post_id, n_after))
+        after_posts = after_cursor.fetchall()
+
+        # Combine: before (reversed to chronological), current, after
+        posts = list(reversed(before_posts))
+        if current_post:
+            posts.append(current_post)
+        posts.extend(after_posts)
+
+        # Convert rows to dicts
+        columns = [col[0] for col in before_cursor.description]
+        all_posts = [dict(zip(columns, row)) for row in posts]
+
+        return channel_id, all_posts
+
+def get_posts_before(channel_id, post_id, n):
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.execute('''
+        SELECT p.*
+        FROM posts p
+        WHERE p.channel = ?
+          AND p.id < ?
+        ORDER BY p.id DESC
+        LIMIT ?
+        ''', (channel_id, post_id, n))
+
+        columns = [col[0] for col in cursor.description]
+        posts = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return posts
+
+def get_posts_after(channel_id, post_id, n):
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.execute('''
+        SELECT p.*
+        FROM posts p
+        WHERE p.channel = ?
+          AND p.id > ?
+        ORDER BY p.id ASC
+        LIMIT ?
+        ''', (channel_id, post_id, n))
+
+        columns = [col[0] for col in cursor.description]
+        posts = [dict(zip(columns, row)) for row in cursor.fetchall()]
         return posts
 
 def create_invite_code(code, user_id, uses):

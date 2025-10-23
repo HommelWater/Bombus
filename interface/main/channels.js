@@ -1,5 +1,5 @@
-import { channels, old_message } from "/main/persistent.js";
-import { requestOlderMessages } from "/main/requests.js";
+import { channels, old_message, new_message, setPosts, latest_post, oldest_post } from "/main/persistent.js";
+import { requestOlderMessages, requestNewerMessages, requestPostContext, searchRequest } from "/main/requests.js";
 import { currentVoiceChannel, joinChannel, leaveChannel } from "/main/voice.js";
 export let selected_channel = 1;
 
@@ -21,6 +21,10 @@ export function onLoadChannels(){
 		if (chatWindow.scrollTop < 50) {
 			loadOlderMessages(chatWindow);
 		}
+        const scrollBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight;
+        if (scrollBottom < 50) {
+            loadNewerMessages(chatWindow);
+        }
 	});
 }
 
@@ -37,7 +41,7 @@ function onChannelListClick(event){
     const channelItem = event.target.closest('.sidebar-item');
     if (channelItem) {
         const channelId = channelItem.dataset.channelId;
-        displayChannel(channels[channelId]);
+        displayChannel(channels[channelId], -1);
     }
     
     const joinButton = event.target.closest('.join-channel-button');
@@ -97,7 +101,7 @@ export function loadChannels(channels){
     channelList.innerHTML = channelDivs.join('');
 }
 
-export function displayChannel(channel){
+export function displayChannel(channel, highlighted_post){
     if(!channel) return;
     selected_channel = channel.id;
     const chatWindow = document.getElementById("chat-window");
@@ -111,10 +115,42 @@ export function displayChannel(channel){
         }
     });
     document.getElementById(`channel-${channel.id}`).style.background = "var(--color-button-h)";
-    if (channel.posts.length <=50){
-        hasMore = true;
+    hasMoreNew = true;
+    hasMoreOld = true;
+    if (highlighted_post && highlighted_post != -1) {
+        const target = document.getElementById(`post-${highlighted_post}`);
+        if (target) {
+            setTimeout(() => {chatWindow.scrollTop = target.offsetTop - chatWindow.clientHeight / 2;}, 20);
+        }
+    } else if (highlighted_post == -1){
+        setTimeout(() => {chatWindow.scrollTop = chatWindow.scrollHeight;}, 20);
     }
-    setTimeout(() => {chatWindow.scrollTop = chatWindow.scrollHeight;}, 20);
+}
+
+export async function search(){
+    const query = document.getElementById('search-bar').value;
+	const res = await searchRequest(selected_channel, query);
+    if(!res || res.status !== "success") return;
+    const posts = res.result;
+    console.log(posts);
+    const chatWindow = document.getElementById("chat-window");
+    const postDivs = posts.map(post =>{
+        const div = createPostDiv(post);
+        return `<div class=search-post style="display:flex">${div}<button id="go-to-${post.id}" data-id="${post.id}" class="btn go-to-button">📄</button></div>`;
+    });
+    chatWindow.innerHTML = postDivs.join("");
+    document.querySelectorAll('.go-to-button').forEach(d =>{
+        d.addEventListener('click', e => displayPost(e.currentTarget.dataset.id));
+    });
+}
+
+async function displayPost(post_id){
+    const result = await requestPostContext(post_id);
+    if(!result || result.status !== "success") return;
+    const posts = result.result.posts;
+    const channel_id = result.result.channel_id;
+    setPosts(channel_id, posts);
+    displayChannel(channels[channel_id], post_id);
 }
 
 function createPostDiv(post){
@@ -140,29 +176,62 @@ function createPostDiv(post){
 }
 
 let isLoading = false;
-let oldestMessage = 50;
-let hasMore = true;
+let hasMoreOld = true;
 async function loadOlderMessages(chatWindow){
-    if (isLoading || !hasMore) return;
+    if (isLoading || !hasMoreOld) return;
     isLoading = true;
 
     const oldScrollHeight = chatWindow.scrollHeight;
     const oldScrollTop = chatWindow.scrollTop;
 
     const session = localStorage.getItem("session");
-    
-    const data = await requestOlderMessages(session, selected_channel, oldestMessage);
-    oldestMessage += 50;
+    const data = await requestOlderMessages(session, selected_channel, oldest_post);
 
     if (data.result.length == 0){
-        hasMore = false;
+        hasMoreOld = false;
         return;
     }
 
     data.result.forEach(post => old_message(post));
     displayChannel(channels[selected_channel]);
-
     const newScrollHeight = chatWindow.scrollHeight;
     chatWindow.scrollTop = oldScrollTop + (newScrollHeight - oldScrollHeight);
     isLoading = false;
+}
+
+let hasMoreNew = true;
+async function loadNewerMessages(chatWindow) {
+    if (isLoading || !hasMoreNew) return;
+    isLoading = true;
+
+    const session = localStorage.getItem("session");
+    const data = await requestNewerMessages(session, selected_channel, latest_post);
+    console.log(data);
+    if (!data.result || data.result.length === 0) {
+        hasMoreNew = false;
+        isLoading = false;
+        return;
+    }
+
+    data.result.forEach(post => new_message(post));
+    displayChannel(channels[selected_channel], -1);
+
+    const nearBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 50;
+    if (nearBottom) {
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    isLoading = false;
+}
+
+function createPostSettingsDiv(post){
+    const settingsHTML = `
+        <div id="post-${post.id}-settings" class="rclick-settings">
+            <div id="delete-post" class="setting"></div>
+            <div id="edit-post" class="setting"></div>
+            <div id="rename-user" class="setting"></div>
+            <div id="delete-pfp-user" class="setting"></div>
+        </div>
+    `;
+    return settingsHTML;
 }

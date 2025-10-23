@@ -74,7 +74,7 @@ export async function requestNewChannel(){
 }
 
 export async function requestOlderMessages(session, channelId, oldestMessage){
-    const res = await fetch('/load_messages', {
+    const res = await fetch('/load_messages_old', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ "session_key":session, "channel_id":channelId, "from_message": oldestMessage})
@@ -87,5 +87,54 @@ export async function requestOlderMessages(session, channelId, oldestMessage){
     
     const data = await res.json();
     return data;
+}
 
+export async function requestNewerMessages(session, channelId, newestMessage){
+    const res = await fetch('/load_messages_new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ "session_key":session, "channel_id":channelId, "from_message": newestMessage})
+    });
+    if (!res.ok) {
+        const { error } = await res.json().catch(() => ({}));
+        console.log(error);
+        return;
+    }
+    
+    const data = await res.json();
+    return data;
+}
+
+export async function searchRequest(channelId, query){
+	const session = localStorage.getItem("session");
+    const res = await fetch('/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ "session_key":session, "channel_id":channelId, "query":query})
+    });
+    if (!res.ok) {
+        const { error } = await res.json().catch(() => ({}));
+        console.log(error);
+        return;
+    }
+    
+    const data = await res.json();
+    return data;
+}
+
+export async function requestPostContext(post_id){
+	const session = localStorage.getItem("session");
+    const res = await fetch('/post_context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ "session_key":session, "post_id":post_id})
+    });
+    if (!res.ok) {
+        const { error } = await res.json().catch(() => ({}));
+        console.log(error);
+        return;
+    }
+    
+    const data = await res.json();
+    return data;
 }

@@ -1,7 +1,7 @@
 import { onLoadVoice } from "/main/voice.js";
-import { requestNewChannel, onLoadRequests } from "/main/requests.js";
+import { requestNewChannel, onLoadRequests, searchRequest } from "/main/requests.js";
 import { onLoadPersistent } from "/main/persistent.js";
-import { onLoadChannels } from "/main/channels.js";
+import { onLoadChannels, search } from "/main/channels.js";
 document.addEventListener('DOMContentLoaded', onLoad);
 
 function onLoad() {
@@ -12,6 +12,7 @@ function onLoad() {
 	
 	document.getElementById("user-input").addEventListener("keydown", handle_input_key);
 	document.getElementById("add-channel-button").addEventListener('click', addChannelButton);
+	document.getElementById("search-button").addEventListener('click', search);
 }
 
 function addChannelButton(e){

@@ -34,3 +34,4 @@ function createUserSettingsDiv(user){
     `;
     return settingsHTML;
 }
+

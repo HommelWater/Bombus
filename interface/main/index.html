@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="icon" href="./images/icon.jpg" type="image/png">
+    <link rel="icon" href="./images/cato.png" type="image/png">
     <title>Chat</title>
     <link rel="stylesheet" href="/shared/webkit.css">
     <link rel="stylesheet" href="/main/styles.css">
@@ -18,7 +18,7 @@
     <body>
     <div id="container" class="container">
         <div id ="sidebar" class="sidebar">
-            <img src="./images/icon.jpg" style="width: 100%; height:auto;">
+            <img src="./images/cato.png" style="width: 100%; height:auto;">
             <h2>Settings</h2>
             <div id="profile-picture-item" class="sidebar-item" style="display:flex;">
                 <label class="profile-picture-input-label" for="profile-picture-input">Change Profile Picture</label>
@@ -37,6 +37,10 @@
             <div id="chat-header" style="text-align: left; display: flex;">
                 <div id="sidebar-button" class="sidebar-button" style="text-align: left; width:30px;"><h3>☰</h3></div>
                 <h3 id="chat-header-text"></h3>
+                <div id="chat-header-search" style="margin-left:auto">
+                    <input type="text" id="search-bar" placeholder="Search...">
+                    <button id="search-button" style="background:none;border:none">🔍</button>
+                </div>
             </div>
             <div id="chat-window" style="color: var(--color-text);"></div>
         <div class="form-group">

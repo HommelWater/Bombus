@@ -7,6 +7,7 @@ export let user_id;
 export let users = {};
 export let channels = {};
 export let latest_post = 0;
+export let oldest_post = 0;
 
 const base_packet_types = {
     "hello": hello,
@@ -29,6 +30,7 @@ function hello(data){
     data.channels.forEach(channel => {
         channels[channel.id] = channel;
     });
+    channels[-1] = {"connected_users":[], "id":"search", "name":"Search", "posts":[]};
     loadChannels(channels);
     data.posts.reverse().forEach(post => message(post));
     displayChannel(channels[selected_channel]);
@@ -41,7 +43,18 @@ function hello(data){
     })
 }
 
+export function setPosts(channel_id, posts){
+    channels[channel_id].posts = posts;
+}
+
 function message(data){
+    new_message(data)
+    if (selected_channel === data.channel){
+        displayChannel(channels[data.channel]);
+    }
+}
+
+export function new_message(data){
     const channel = channels[data.channel];
     data.username = users[data.user_id].username;
     if (!channel.posts) {
@@ -55,9 +68,6 @@ function message(data){
         channel.posts.push(data);
     }
     latest_post = data.id;
-    if (selected_channel === data.channel){
-        displayChannel(channel);
-    }
 }
 
 export function old_message(data){
@@ -73,6 +83,7 @@ export function old_message(data){
     } else {
         channel.posts.unshift(data);
     }
+    oldest_post = data.id;
 }
 
 function error(data){

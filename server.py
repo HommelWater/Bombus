@@ -32,6 +32,15 @@ class LoadMessagesInfo(BaseModel):
     from_message: int
     channel_id: int
 
+class SearchInfo(BaseModel):
+    session_key: str
+    channel_id: int
+    query: str
+
+class PostContextInfo(BaseModel):
+    session_key: str
+    post_id: int
+
 @app.get("/")
 async def read_root():
     return FileResponse("./interface/main/index.html")
@@ -85,15 +94,46 @@ async def change_profile_picture(info: ChangeProfilePictureInfo):
     except Exception as e:
         return {"status": "failure", "result": f"Error processing image: {str(e)}"}
 
-@app.post("/load_messages")
-async def load_messages(info: LoadMessagesInfo):
+@app.post("/load_messages_old")
+async def load_messages_old(info: LoadMessagesInfo):
     session = data.get_session(info.session_key)
     if session is None:
         return {"status":"failure", "result":"Could not find session."}
-    posts = data.get_posts_from_offset(info.channel_id, info.from_message, 50)
+    posts = data.get_posts_before(info.channel_id, info.from_message, 50)
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
     return {"status":"success", "result":posts}
+
+@app.post("/load_messages_new")
+async def load_messages_new(info: LoadMessagesInfo):
+    session = data.get_session(info.session_key)
+    if session is None:
+        return {"status":"failure", "result":"Could not find session."}
+    posts = data.get_posts_after(info.channel_id, info.from_message, 50)
+    if posts is None:
+        return {"status":"failure", "result":"Could not get posts."}
+    return {"status":"success", "result":posts}
+
+@app.post("/search")
+async def search(info: SearchInfo):
+    session = data.get_session(info.session_key)
+    if session is None:
+        return {"status":"failure", "result":"Could not find session."}
+    posts = data.search_posts(info.channel_id, info.query)
+    if posts is None:
+        return {"status":"failure", "result":"Could not get posts."}
+    return {"status":"success", "result":posts}
+
+@app.post("/post_context")
+async def search(info: PostContextInfo):
+    session = data.get_session(info.session_key)
+    if session is None:
+        return {"status":"failure", "result":"Could not find session."}
+    channel_id, posts = data.get_neighboring_posts(info.post_id)
+    if posts is None:
+        return {"status":"failure", "result":"Could not get posts."}
+    return {"status":"success", "result":{"posts":posts, "channel_id":channel_id}}
+
 
 app.mount("/", StaticFiles(directory="./interface"), name="static")
 

@@ -121,8 +121,8 @@ html.froggy {
 
 .theme-toggle {
   position: fixed;
-  top: 15px;
-  right: 15px;
+  top: 2px;
+  right: 2px;
   z-index: 9999; /* always on top */
   background: var(--color-button);
   border: none;

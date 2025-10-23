@@ -1,8 +1,20 @@
-make client and server more stable
-reactive web app
+handle keyboard inputs better, especially in login page make the enter button log the user in.
+image loading causes the chat move upwards, adding too big of a delay makes it feel slow.
+user permissions and settings?
 sound effects
-nicer themes
-per user color
+nicer themes, probably fix those huge headers, theme creation competition would be amazing
+per user color, maybe message color based on sentiment?
+rewrite backend in c? (pyton is nice for customisability tho :)
+per user blog like pages?
+inter server communication? Use the server to forward messages from one user on a server to another user on another server
+fast file hosting with nginx directly?
+bot api?
+
+Current Priorities:
 search
-user list
-rewrite backend in c
+move settings into right click menu
+propper image hosting and uploading etc.
+progressive web app stuff
+
+Kinda:
+verify security (probably best once feature complete), add rate limiting
