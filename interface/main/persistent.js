@@ -6,8 +6,7 @@ export let socket;
 export let user_id;
 export let users = {};
 export let channels = {};
-export let latest_post = 0;
-export let oldest_post = 0;
+export const postRange = {"latest":0, "oldest":0};
 
 const base_packet_types = {
     "hello": hello,
@@ -32,6 +31,7 @@ function hello(data){
     });
     channels[-1] = {"connected_users":[], "id":-1, "name":"Search", "posts":[]};
     loadChannels(channels);
+    postRange.oldest = data.posts[0].id;
     data.posts.reverse().forEach(post => message(post));
     displayChannel(channels[selected_channel]);
     Object.values(channels).forEach(channel=>{
@@ -67,7 +67,7 @@ export function new_message(data){
     } else {
         channel.posts.push(data);
     }
-    latest_post = data.id;
+    postRange.latest = data.id;
 }
 
 export function old_message(data){
@@ -83,7 +83,7 @@ export function old_message(data){
     } else {
         channel.posts.unshift(data);
     }
-    oldest_post = data.id;
+    postRange.oldest = data.id;
 }
 
 function error(data){
@@ -130,7 +130,7 @@ function onMessageSocket(e){
 
 function onOpenSocket(e){
     const session = localStorage.getItem("session");
-    socket.send(JSON.stringify({"type":"hello", "data":{"session":session, "latest_post_id":latest_post}}));
+    socket.send(JSON.stringify({"type":"hello", "data":{"session":session, "latest_post_id":postRange.latest}}));
     console.log('Connected to server');
 }
 

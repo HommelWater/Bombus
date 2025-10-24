@@ -1,4 +1,4 @@
-import { channels, old_message, new_message, setPosts, latest_post, oldest_post } from "/main/persistent.js";
+import { channels, old_message, new_message, setPosts, postRange } from "/main/persistent.js";
 import { requestOlderMessages, requestNewerMessages, requestPostContext, searchRequest } from "/main/requests.js";
 import { currentVoiceChannel, joinChannel, leaveChannel } from "/main/voice.js";
 export let selected_channel = 1;
@@ -77,7 +77,6 @@ export function createVoiceChannelUserDiv(user, channel){
 
 function createChannelDiv(channel){
     const id = channel.id;
-    console.log(id);
     const channelHTML = `
     <div id="channel-${id}" data-channel-id="${id}" class="sidebar-item" ${channel.id == -1 ? `style="display:none"`:``}>
         <div style="display: flex;">
@@ -132,7 +131,6 @@ export async function search(){
 	const res = await searchRequest(selected_channel, query);
     if(!res || res.status !== "success") return;
     const posts = res.result;
-    console.log(posts);
     const chatWindow = document.getElementById("chat-window");
     const postDivs = posts.map(post =>{
         const div = createPostDiv(post);
@@ -184,7 +182,8 @@ async function loadOlderMessages(chatWindow){
     const oldScrollTop = chatWindow.scrollTop;
 
     const session = localStorage.getItem("session");
-    const data = await requestOlderMessages(session, selected_channel, oldest_post);
+    console.log(postRange.oldest);
+    const data = await requestOlderMessages(session, selected_channel, postRange.oldest);
 
     if (data.result.length == 0){
         hasMoreOld = false;
@@ -204,8 +203,7 @@ async function loadNewerMessages(chatWindow) {
     isLoading = true;
 
     const session = localStorage.getItem("session");
-    const data = await requestNewerMessages(session, selected_channel, latest_post);
-    console.log(data);
+    const data = await requestNewerMessages(session, selected_channel, postRange.latest);
     if (!data.result || data.result.length === 0) {
         hasMoreNew = false;
         isLoading = false;
