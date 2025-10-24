@@ -63,7 +63,7 @@ export function new_message(data){
     }
     if (channel.posts.some(p => p.id === data.id)) return;
     const lastPost = channel.posts[channel.posts.length - 1];
-    if (lastPost.username === data.username && data.created_at - lastPost.created_at <= 60 && data.created_at > lastPost.created_at){
+    if (lastPost && lastPost.username === data.username && data.created_at - lastPost.created_at <= 60 && data.created_at > lastPost.created_at){
         lastPost.content += `<br>${data.content}`;
     } else {
         channel.posts.push(data);
@@ -80,13 +80,12 @@ export function old_message(data){
     }
     if (channel.posts.some(p => p.id === data.id)) return;
     let firstPost = channel.posts[0];
-    if (firstPost.username === data.username && firstPost.created_at - data.created_at < 60 && firstPost.created_at > data.created_at){
+    if (firstPost && firstPost.username === data.username && firstPost.created_at - data.created_at < 60 && firstPost.created_at > data.created_at){
         firstPost.content = `${data.content}<br>${firstPost.content}`;
     } else {
         channel.posts.unshift(data);
     }
     postRange.oldest = data.id;
-    console.log(data.id);
 }
 
 function error(data){

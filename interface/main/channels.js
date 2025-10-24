@@ -182,7 +182,6 @@ async function loadOlderMessages(chatWindow){
     const oldScrollTop = chatWindow.scrollTop;
 
     const session = localStorage.getItem("session");
-    console.log(postRange.oldest);
     const data = await requestOlderMessages(session, selected_channel, postRange.oldest);
 
     if (data.result.length == 0){

@@ -1,5 +1,5 @@
 import { onLoadVoice } from "/main/voice.js";
-import { requestNewChannel, onLoadRequests, searchRequest } from "/main/requests.js";
+import { addNewChannel, onLoadRequests } from "/main/requests.js";
 import { onLoadPersistent } from "/main/persistent.js";
 import { onLoadChannels, search } from "/main/channels.js";
 document.addEventListener('DOMContentLoaded', onLoad);
@@ -21,8 +21,8 @@ function addChannelButton(e){
 	btn.innerHTML = `
 		<input id="channel-name" style="width:100%; margin-right:5px" placeholder="New channel name"></input>
 		<button id="add-channel-add-button" class="btn">Add</button>
-	`
-	document.getElementById("add-channel-add-button").addEventListener('click', requestNewChannel);
+	`;
+	document.getElementById("add-channel-add-button").addEventListener('click', addNewChannel);
 }
 
 function handle_input_key(e) {

@@ -12,6 +12,9 @@ def init_database():
                 totp_secret TEXT UNIQUE NOT NULL,
                 created_at INTEGER DEFAULT (strftime('%s', 'now')),
                 verified BOOLEAN DEFAULT 0,
+                restricted BOOLEAN DEFAULT 0,
+                banned BOOLEAN DEFAULT 0,
+                admin BOOLEAN DEFAULT 0,
                 FOREIGN KEY (referer_id) REFERENCES users (id)
             )
         ''')
@@ -288,7 +291,10 @@ def get_user(username: str) -> Optional[Dict[str, Any]]:
                 'username': row[2],
                 'totp_secret': row[3],
                 'created_at': row[4],
-                'verified': row[5]
+                'verified': row[5],
+                'restricted': row[6],
+                'banned': row[7],
+                'admin': row[8]
             }
         return None
     
@@ -308,7 +314,10 @@ def get_users() -> Optional[Dict[str, Any]]:
                     'referer_id': row[1],
                     'username': row[2],
                     'created_at': row[4],
-                    'verified': row[5]
+                    'verified': row[5],
+                    'restricted': row[6],
+                    'banned': row[7],
+                    'admin': row[8]
                 })
         return users
     
@@ -328,7 +337,10 @@ def get_user_by_id(id: str) -> Optional[Dict[str, Any]]:
                 'username': row[2],
                 'totp_secret': row[3],
                 'created_at': row[4],
-                'verified': row[5]
+                'verified': row[5],
+                'restricted': row[6],
+                'banned': row[7],
+                'admin': row[8]
             }
         return None
     

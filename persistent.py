@@ -63,7 +63,6 @@ async def onMessage(websocket: WebSocket, data, session, user):
     post_id = database.add_post(user["id"], data["channel"], data["content"])
     data = database.get_post(post_id)
     await broadcast({"type":"message", "data":data})
-    print(data)
     return session, user
 
 async def broadcast(json):
