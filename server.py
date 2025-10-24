@@ -125,7 +125,7 @@ async def search(info: SearchInfo):
     return {"status":"success", "result":posts}
 
 @app.post("/post_context")
-async def search(info: PostContextInfo):
+async def post_context(info: PostContextInfo):
     session = data.get_session(info.session_key)
     if session is None:
         return {"status":"failure", "result":"Could not find session."}

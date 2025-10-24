@@ -31,7 +31,7 @@ function hello(data){
     });
     channels[-1] = {"connected_users":[], "id":-1, "name":"Search", "posts":[]};
     loadChannels(channels);
-    postRange.oldest = data.posts[0].id;
+    postRange.oldest = data.posts[data.posts.length - 1].id;
     data.posts.reverse().forEach(post => message(post));
     displayChannel(channels[selected_channel]);
     Object.values(channels).forEach(channel=>{
@@ -61,8 +61,9 @@ export function new_message(data){
         channel.posts = [data];
         return;
     }
+    if (channel.posts.some(p => p.id === data.id)) return;
     const lastPost = channel.posts[channel.posts.length - 1];
-    if (lastPost.username === data.username && lastPost.created_at > (data.created_at - 60)){
+    if (lastPost.username === data.username && data.created_at - lastPost.created_at <= 60 && data.created_at > lastPost.created_at){
         lastPost.content += `<br>${data.content}`;
     } else {
         channel.posts.push(data);
@@ -77,13 +78,15 @@ export function old_message(data){
         channel.posts = [data];
         return;
     }
+    if (channel.posts.some(p => p.id === data.id)) return;
     let firstPost = channel.posts[0];
-    if (firstPost.username === data.username && data.created_at > (firstPost.created_at - 60)){
+    if (firstPost.username === data.username && firstPost.created_at - data.created_at < 60 && firstPost.created_at > data.created_at){
         firstPost.content = `${data.content}<br>${firstPost.content}`;
     } else {
         channel.posts.unshift(data);
     }
     postRange.oldest = data.id;
+    console.log(data.id);
 }
 
 function error(data){
