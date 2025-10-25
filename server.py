@@ -1,9 +1,9 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-import database as data
-import time
+import database as database
+import pyotp
 import base64
 from pathlib import Path
 from PIL import Image
@@ -13,33 +13,15 @@ from auth import router as auth_router
 from persistent import router as peristent_router
 from persistent import broadcast
 
-data.init_database()
+database.init_database()
 app = FastAPI()
 app.include_router(auth_router, prefix="/auth")
 app.include_router(peristent_router, prefix="/persistent")
 
-class ChannelInfo(BaseModel):
+class RequestInfo(BaseModel):
     session_key: str
-    name: str
-
-class ChangeProfilePictureInfo(BaseModel):
-    session_key: str
-    file: str
-    extension: str
-
-class LoadMessagesInfo(BaseModel):
-    session_key: str
-    from_message: int
-    channel_id: int
-
-class SearchInfo(BaseModel):
-    session_key: str
-    channel_id: int
-    query: str
-
-class PostContextInfo(BaseModel):
-    session_key: str
-    post_id: int
+    type:str
+    data:dict
 
 @app.get("/")
 async def read_root():
@@ -49,28 +31,32 @@ async def read_root():
 async def read_root():
     return FileResponse("./interface/login/index.html")
 
-@app.post("/channel")
-async def channel(info: ChannelInfo):
-    session = data.get_session(info.session_key)
+@app.post("/request")
+async def request(info:RequestInfo):
+    session = database.get_session(info.session_key)
     if session is None:
         return {"status":"failure", "result":"Could not find session."}
-    
-    if info.name is not None:
-        idx = data.create_channel(info.name)
-        if idx is None:
-            return {"status":"failure", "result":"Could not create channel."}
-    
-    await broadcast({"channels":data.get_channels()})
+    return type_function_map[info.type](session, info.data)
+
+async def invite(session, data):
+    invite_code = pyotp.random_hex()[:12]
+    idx = database.create_invite_code(invite_code, session["user_id"], data.uses)
+    if idx is None:
+        return {"status":"failure", "result":"Could not create invite code."}
+    return {"status":"success", "result":invite_code}
+
+async def channel(session, data):
+    if data.name is None:
+        return {"status":"failure", "result":"No channel name given."}
+    idx = database.create_channel(data.name)
+    if idx is None:
+        return {"status":"failure", "result":"Could not create channel."}
+    await broadcast({"channels":database.get_channels()})
     return {"status":"success", "result":idx}
 
-@app.post("/change_profile_picture")
-async def change_profile_picture(info: ChangeProfilePictureInfo):
-    session = data.get_session(info.session_key)
-    if session is None:
-        return {"status":"failure", "result":"Could not find session."}
-    
+async def profile_picture(session, data):
     user_id = session["user_id"]
-    file_data = base64.b64decode(info.file)
+    file_data = base64.b64decode(data.file)
     
     try:
         image = Image.open(io.BytesIO(file_data))
@@ -94,49 +80,96 @@ async def change_profile_picture(info: ChangeProfilePictureInfo):
     except Exception as e:
         return {"status": "failure", "result": f"Error processing image: {str(e)}"}
 
-@app.post("/load_messages_old")
-async def load_messages_old(info: LoadMessagesInfo):
-    session = data.get_session(info.session_key)
-    if session is None:
-        return {"status":"failure", "result":"Could not find session."}
-    posts = data.get_posts_before(info.channel_id, info.from_message, 50)
+async def load_old_posts(session, data):
+    posts = database.get_posts_before(data.channel_id, data.from_post, 50)
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
     return {"status":"success", "result":posts}
 
-@app.post("/load_messages_new")
-async def load_messages_new(info: LoadMessagesInfo):
-    session = data.get_session(info.session_key)
-    if session is None:
-        return {"status":"failure", "result":"Could not find session."}
-    posts = data.get_posts_after(info.channel_id, info.from_message, 50)
+async def load_new_posts(session, data):
+    posts = database.get_posts_after(data.channel_id, data.from_post, 50)
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
     return {"status":"success", "result":posts}
 
-@app.post("/search")
-async def search(info: SearchInfo):
-    session = data.get_session(info.session_key)
-    if session is None:
-        return {"status":"failure", "result":"Could not find session."}
-    posts = data.search_posts(info.channel_id, info.query)
+async def search(session, data):
+    posts = database.search_posts(data.channel_id, data.query)
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
     return {"status":"success", "result":posts}
 
-@app.post("/post_context")
-async def post_context(info: PostContextInfo):
-    session = data.get_session(info.session_key)
-    if session is None:
-        return {"status":"failure", "result":"Could not find session."}
-    channel_id, posts = data.get_neighboring_posts(info.post_id)
+async def context(session, data):
+    channel_id, posts = database.get_neighboring_posts(data.post_id)
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
-    return {"status":"success", "result":{"posts":posts, "channel_id":channel_id}}
+    return {"status":"success", "result":posts}
 
+async def ban(session, data):
+    user = database.get_user_by_id(session.user_id)
+    if user is None or not user["admin"]:
+        return {"status":"failure", "result":"You do not have permission to ban users."}
+    banned = database.toggle_ban(data.user_id)
+    if banned is None:
+        return {"status":"failure", "result":"Could not ban or unban user."}
+    if banned:
+        return {"status":"success", "result":"User successfully banned."}
+    else: return {"status":"success", "result":"User successfully unbanned."}
+
+async def restrict(session, data):
+    user = database.get_user_by_id(session.user_id)
+    if user is None or not user["admin"]:
+        return {"status":"failure", "result":"You do not have permission to restrict users."}
+    restricted = database.toggle_restrict(data.user_id)
+    if restricted is None:
+        return {"status":"failure", "result":"Could not restrict or unrestrict user."}
+    if restricted:
+        return {"status":"success", "result":"User successfully restricted."}
+    else: return {"status":"success", "result":"User successfully unrestricted."}
+
+async def admin(session, data):
+    user = database.get_user_by_id(session.user_id)
+    if user is None or not user["admin"]:
+        return {"status":"failure", "result":"You do not have permission to make users administrator."}
+    admin = database.toggle_admin(data.user_id)
+    if admin is None:
+        return {"status":"failure", "result":"Could not give or take admin privileges."}
+    if admin:
+        return {"status":"success", "result":"User successfully made administrator."}
+    else: return {"status":"success", "result":"User successfully removed administrator privileges."}
+
+async def reset_profile_picture(session, data):
+    user = database.get_user_by_id(session.user_id)
+    if user is None or not user["admin"]:
+        return {"status":"failure", "result":"You do not have permission to delete this profile picture."}
+    #delete the file if it exists for info.user_id in /interface/images/users/userid.webp
+    return {"status":"success", "result":"Deleted user profile picture."}
+
+async def rename(session, data):
+    user = database.get_user_by_id(session.user_id)
+    if user is None or not user["admin"]:
+        return {"status":"failure", "result":"You do not have permission to rename this user."}
+    newname = database.rename_user(data.user_id)
+    if newname is None:
+        return {"status":"failure", "result":"Could not rename user."}
+    return {"status":"success", "result":f"Renamed user to '{newname}'."}
 
 app.mount("/", StaticFiles(directory="./interface"), name="static")
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+type_function_map = {
+    "invite": invite,
+    "profile_picture": profile_picture,
+    "channel": channel,
+    "load_old_posts": load_old_posts,
+    "load_new_posts": load_new_posts,
+    "search": search,
+    "context": context,
+    "ban": ban,
+    "restrict": restrict,
+    "admin": admin,
+    "reset_profile_picture":reset_profile_picture,
+    "rename":rename
+}

@@ -16,9 +16,9 @@ async function request(type, data){
         return;
 	}
 	
-	const data = await res.json();
-	console.log(data);
-    return data;
+	const out = await res.json();
+	console.log(out);
+    return out;
 }
 
 async function setInviteCode(){
@@ -48,89 +48,42 @@ async function changeProfilePicture(e){
 export async function addNewChannel(){
 	const channelName = document.getElementById("channel-name").value;
 	const data = await request("channel", {"name":channelName});
-	console.log(data);
     location.href = "/";
-}
-
-export async function requestOlderMessages(session, channelId, oldestMessage){
-    const res = await fetch('/load_messages_old', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "session_key":session, "channel_id":channelId, "from_message": oldestMessage})
-    });
-    if (!res.ok) {
-        const { error } = await res.json().catch(() => ({}));
-        console.log(error);
-        return;
-    }
-    
-    const data = await res.json();
     return data;
 }
 
-export async function requestNewerMessages(session, channelId, newestMessage){
-    const res = await fetch('/load_messages_new', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "session_key":session, "channel_id":channelId, "from_message": newestMessage})
-    });
-    if (!res.ok) {
-        const { error } = await res.json().catch(() => ({}));
-        console.log(error);
-        return;
-    }
-    
-    const data = await res.json();
-    return data;
+export async function requestOlderPosts(channelId, oldestPost){
+    return await request("load_old_posts", {"channel_id":channelId, "from_post":oldestPost});
+}
+
+export async function requestNewerPosts(channelId, newestPost){
+    return await request("load_new_posts", {"channel_id":channelId, "from_post":newestPost});
 }
 
 export async function searchRequest(channelId, query){
-	const session = localStorage.getItem("session");
-    const res = await fetch('/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "session_key":session, "channel_id":channelId, "query":query})
-    });
-    if (!res.ok) {
-        const { error } = await res.json().catch(() => ({}));
-        console.log(error);
-        return;
-    }
-    
-    const data = await res.json();
-    return data;
+    return await request("search", {"channel_id":channelId, "query":query})
 }
 
-export async function requestPostContext(post_id){
-	const session = localStorage.getItem("session");
-    const res = await fetch('/post_context', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "session_key":session, "post_id":post_id})
-    });
-    if (!res.ok) {
-        const { error } = await res.json().catch(() => ({}));
-        console.log(error);
-        return;
-    }
-    
-    const data = await res.json();
-    return data;
+export async function requestPostContext(postId){
+    return await request("context", {"post_id":postId});
 }
 
 export async function requestToggleBanUser(user_id){
-	const session = localStorage.getItem("session");
-    const res = await fetch('/ban', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "session_key":session, "user_id":user_id})
-    });
-    if (!res.ok) {
-        const { error } = await res.json().catch(() => ({}));
-        console.log(error);
-        return;
-    }
-    
-    const data = await res.json();
-    return data;
+    return await request("ban", {"user_id":user_id})
+}
+
+export async function requestToggleAdminUser(user_id){
+    return await request("admin", {"user_id":user_id})
+}
+
+export async function requestToggleRestrictUser(user_id){
+    return await request("restrict", {"user_id":user_id})
+}
+
+export async function requestRenameUser(user_id){
+    return await request("rename", {"user_id":user_id})
+}
+
+export async function requestResetUserPfp(user_id){
+    return await request("reset_profile_picture", {"user_id":user_id})
 }

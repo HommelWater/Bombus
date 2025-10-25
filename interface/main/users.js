@@ -1,4 +1,5 @@
 import { users } from "/main/persistent.js";
+import { requestToggleBanUser, requestToggleAdminUser, requestToggleRestrictUser } from "/main/requests.js";
 
 function createUserSidebarDiv(user){
     const userHTML = `
@@ -46,16 +47,24 @@ function onRightClickUser(event){
     
     const banUser = settingsDiv.querySelector('#ban-user');
     const restrictUser = settingsDiv.querySelector('#restrict-user');
+    const adminUser = settingsDiv.querySelector('#admin-user');
     const renameUser = settingsDiv.querySelector('#rename-user');
     const deletePfpUser = settingsDiv.querySelector('#delete-pfp-user');
     
     banUser.addEventListener('click', () => {
-        console.log(`Ban user: ${user.id}`);
+        requestToggleBanUser(user_id);
         settingsDiv.style.display = "none";
     });
     
     restrictUser.addEventListener('click', () => {
         console.log(`Restrict user: ${user.id}`);
+        requestToggleRestrictUser(user_id);
+        settingsDiv.style.display = "none";
+    });
+
+    adminUser.addEventListener('click', () => {
+        console.log(`Admin user: ${user.id}`);
+        requestToggleAdminUser(user_id);
         settingsDiv.style.display = "none";
     });
     

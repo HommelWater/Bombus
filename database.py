@@ -421,6 +421,63 @@ def recent_posts_per_channel(
 
     return [dict(r) for r in rows]
 
+def toggle_restricted(user_id: int) -> bool:
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT restricted FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        
+        current_restricted = bool(row[0])
+        new_restricted = not current_restricted
+        
+        cursor.execute(
+            "UPDATE users SET restricted = ? WHERE id = ?",
+            (int(new_restricted), user_id)
+        )
+        conn.commit()
+        
+        return new_restricted
+
+def toggle_banned(user_id: int) -> bool:
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT banned FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        
+        current_banned = bool(row[0])
+        new_banned = not current_banned
+        
+        cursor.execute(
+            "UPDATE users SET banned = ? WHERE id = ?",
+            (int(new_banned), user_id)
+        )
+        conn.commit()
+        
+        return new_banned
+
+def toggle_admin(user_id: int) -> bool:
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT admin FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        
+        current_admin = bool(row[0])
+        new_admin = not current_admin
+        
+        cursor.execute(
+            "UPDATE users SET admin = ? WHERE id = ?",
+            (int(new_admin), user_id)
+        )
+        conn.commit()
+        
+        return new_admin
+
 def reset_posts():
     """Delete all posts from the database."""
     with sqlite3.connect(db_path) as conn:

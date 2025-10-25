@@ -1,5 +1,5 @@
 import { channels, old_message, new_message, setPosts, postRange } from "/main/persistent.js";
-import { requestOlderMessages, requestNewerMessages, requestPostContext, searchRequest } from "/main/requests.js";
+import { requestOlderPosts, requestNewerPosts, requestPostContext, searchRequest } from "/main/requests.js";
 import { currentVoiceChannel, joinChannel, leaveChannel } from "/main/voice.js";
 export let selected_channel = 1;
 
@@ -19,11 +19,11 @@ export function onLoadChannels(){
     const chatWindow = document.getElementById('chat-window');
 	chatWindow.addEventListener("scroll", () => {
 		if (chatWindow.scrollTop < 50) {
-			loadOlderMessages(chatWindow);
+			loadOlderPosts(chatWindow);
 		}
         const scrollBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight;
         if (scrollBottom < 50) {
-            loadNewerMessages(chatWindow);
+            loadNewerPosts(chatWindow);
         }
 	});
 }
@@ -145,7 +145,7 @@ export async function search(){
 async function displayPost(post_id){
     const result = await requestPostContext(post_id);
     if(!result || result.status !== "success") return;
-    const posts = result.result.posts;
+    const posts = result.result;
     setPosts(-1, posts);
     displayChannel(channels[-1], post_id);
 }
@@ -174,7 +174,7 @@ function createPostDiv(post){
 
 let isLoading = false;
 let hasMoreOld = true;
-async function loadOlderMessages(chatWindow){
+async function loadOlderPosts(chatWindow){
     if (isLoading || !hasMoreOld) return;
     isLoading = true;
 
@@ -182,7 +182,7 @@ async function loadOlderMessages(chatWindow){
     const oldScrollTop = chatWindow.scrollTop;
 
     const session = localStorage.getItem("session");
-    const data = await requestOlderMessages(session, selected_channel, postRange.oldest);
+    const data = await requestOlderPosts(session, selected_channel, postRange.oldest);
 
     if (data.result.length == 0){
         hasMoreOld = false;
@@ -197,12 +197,12 @@ async function loadOlderMessages(chatWindow){
 }
 
 let hasMoreNew = true;
-async function loadNewerMessages(chatWindow) {
+async function loadNewerPosts(chatWindow) {
     if (isLoading || !hasMoreNew) return;
     isLoading = true;
 
     const session = localStorage.getItem("session");
-    const data = await requestNewerMessages(session, selected_channel, postRange.latest);
+    const data = await requestNewerPosts(session, selected_channel, postRange.latest);
     if (!data.result || data.result.length === 0) {
         hasMoreNew = false;
         isLoading = false;
