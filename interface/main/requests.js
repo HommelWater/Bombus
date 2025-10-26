@@ -84,6 +84,6 @@ export async function requestRenameUser(user_id){
     return await request("rename", {"user_id":user_id})
 }
 
-export async function requestResetUserPfp(user_id){
-    return await request("reset_profile_picture", {"user_id":user_id})
+export async function requestDeleteUserPfp(user_id){
+    return await request("delete_profile_picture", {"user_id":user_id})
 }

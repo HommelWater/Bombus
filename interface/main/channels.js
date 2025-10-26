@@ -220,13 +220,22 @@ async function loadNewerPosts(chatWindow) {
     isLoading = false;
 }
 
+function createChannelSettingsDiv(){
+    const settingsHTML = `
+        <div id="post-${post.id}-settings">
+            <div id="rename-channel" class="setting"></div>
+            <div id="delete-channel" class="setting"></div>
+        </div>
+    `;
+    return settingsHTML;
+}
+
+
 function createPostSettingsDiv(post){
     const settingsHTML = `
-        <div id="post-${post.id}-settings" class="rclick-settings">
+        <div id="post-${post.id}-settings">
             <div id="delete-post" class="setting"></div>
             <div id="edit-post" class="setting"></div>
-            <div id="rename-user" class="setting"></div>
-            <div id="delete-pfp-user" class="setting"></div>
         </div>
     `;
     return settingsHTML;

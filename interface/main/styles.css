@@ -289,4 +289,15 @@ img {
 	color: var(--color-text);
 }
 
+.user-settings{
+	display: none;
+	background:var(--color-background);
+	border: 1px solid var(--color-border);
+	margin:1px;
+}
+
+.sidebar-item:hover{
+	cursor:pointer;
+}
+
 /*lbv*/

@@ -1,7 +1,20 @@
-import { users } from "/main/persistent.js";
+import { user_id as current_user_id } from "/main/persistent.js";
 import { requestToggleBanUser, requestToggleAdminUser, requestToggleRestrictUser } from "/main/requests.js";
 
 function createUserSidebarDiv(user){
+    let settingsHTML = ``;
+    if (user.admin){
+        settingsHTML = `
+            <div id="ban-user" class="user-setting btn">Ban</div>
+            <div id="restrict-user" class="user-setting btn">Restrict</div>
+            <div id="admin-user" class="user-setting btn">Make Admin</div>
+            <div id="rename-user" class="user-setting btn">Rename</div>
+            <div id="delete-pfp-user" class="user-setting btn">Delete pfp</div>`
+    } else if (user.id == current_user_id){
+        settingsHTML = `
+            <div id="rename-user" class="user-setting btn">Rename</div>
+            <div id="delete-pfp-user" class="user-setting btn">Delete pfp</div>`
+    }
     const userHTML = `
         <div id="user-${user.id}" class="sidebar-item" data-id="${user.id}">
             <div style="display: flex;">
@@ -13,94 +26,64 @@ function createUserSidebarDiv(user){
                     ${user.active ? "🟢" : "🔴"}
                 </div>
             </div>
+            <div id="user-${user.id}-settings" class="user-settings">
+                ${settingsHTML}
+            </div>
         </div>`;
     return userHTML;
+}
+
+function setSettingsListeners(userDiv) {
+    const user_id = userDiv.dataset.id;
+    const settingsDiv = userDiv.querySelector(`.user-settings`);
+    settingsDiv.querySelectorAll('.user-setting').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleUserAction(user_id, btn.dataset.action);
+            settingsDiv.style.display = "none";
+        });
+    });
+}
+
+function handleUserAction(user_id, action) {
+    const actions = {
+        'ban': () => requestToggleBanUser(user_id),
+        'restrict': () => requestToggleRestrictUser(user_id),
+        'admin': () => requestToggleAdminUser(user_id),
+        'rename': () => console.log(`Rename user: ${user_id}`),
+        'delete-pfp': () => requestResetUserPfp(user_id)
+    };
+    
+    if (actions[action]) {
+        actions[action]();
+    }
 }
 
 export function loadUsers(users){
     const userSidebarDivs = users.map(createUserSidebarDiv);
     const rightSidebar = document.getElementById('sidebar-r');
     rightSidebar.innerHTML += userSidebarDivs.join('');
-    document.querySelectorAll(".sidebar-item").forEach(el => el.addEventListener('contextmenu', onRightClickUser));
+    rightSidebar.querySelectorAll(".sidebar-item").forEach(el => {
+        el.addEventListener('click', onClickUser);
+        setSettingsListeners(el);
+    });
 }
 
 export function setActivity(user_id, active){
     document.getElementById(`user-${user_id}-activity`).innerHTML = active ? "🟢" : "🔴";
 }
 
-function onRightClickUser(event){
+function onClickUser(event) {
     const userElement = event.target.closest('.sidebar-item');
     const user_id = userElement ? userElement.dataset.id : null;
-    if (!user_id) {
-        console.error('User ID not found');
-        return;
+    if (!user_id) return;
+
+    const settingsDiv = userElement.querySelector('.user-settings');
+    if (!settingsDiv) return;
+    document.getElementById('sidebar-r').querySelectorAll(`user-settings`).forEach(el =>el.style.display = "none");
+    if (settingsDiv.style.display === "none" || !settingsDiv.style.display){
+        settingsDiv.style.display = "block";
+    } else {
+        settingsDiv.style.display = "none";
     }
-    event.preventDefault();
-
-    const user = users[user_id];
-    const settingsHTML = createUserSettingsDiv(user);
-    const settingsDiv = document.getElementById("rclick-settings");
-    settingsDiv.innerHTML = settingsHTML;
-    
-    settingsDiv.style.left = `${event.pageX}px`;
-    settingsDiv.style.top = `${event.pageY}px`;
-    
-    const banUser = settingsDiv.querySelector('#ban-user');
-    const restrictUser = settingsDiv.querySelector('#restrict-user');
-    const adminUser = settingsDiv.querySelector('#admin-user');
-    const renameUser = settingsDiv.querySelector('#rename-user');
-    const deletePfpUser = settingsDiv.querySelector('#delete-pfp-user');
-    
-    banUser.addEventListener('click', () => {
-        requestToggleBanUser(user_id);
-        settingsDiv.style.display = "none";
-    });
-    
-    restrictUser.addEventListener('click', () => {
-        console.log(`Restrict user: ${user.id}`);
-        requestToggleRestrictUser(user_id);
-        settingsDiv.style.display = "none";
-    });
-
-    adminUser.addEventListener('click', () => {
-        console.log(`Admin user: ${user.id}`);
-        requestToggleAdminUser(user_id);
-        settingsDiv.style.display = "none";
-    });
-    
-    renameUser.addEventListener('click', () => {
-        console.log(`Rename user: ${user.id}`);
-        settingsDiv.style.display = "none";
-    });
-    
-    deletePfpUser.addEventListener('click', () => {
-        console.log(`Delete profile picture for user: ${user.id}`);
-        settingsDiv.style.display = "none";
-    });
-    
-    settingsDiv.style.display = "block";
-    
-    const closeMenu = (e) => {
-        if (!settingsDiv.contains(e.target)) {
-            settingsDiv.style.display = "none";
-            document.removeEventListener('click', closeMenu);
-        }
-    };
-    
-    setTimeout(() => {
-        document.addEventListener('click', closeMenu);
-    }, 10);
 }
-
-function createUserSettingsDiv(user){
-    const settingsHTML = `
-        <div id="user-${user.id}-settings" class="rclick-settings ">
-            <div id="ban-user" class="user-setting btn">Ban</div>
-            <div id="restrict-user" class="user-setting btn">Restrict</div>
-            <div id="rename-user" class="user-setting btn">Rename</div>
-            <div id="delete-pfp-user" class="user-setting btn">Delete pfp</div>
-        </div>
-    `;
-    return settingsHTML;
-}
-

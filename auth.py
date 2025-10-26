@@ -37,6 +37,9 @@ async def signup(info: SignupInfo):
         user = database.create_user(info.username, totp_secret, 1)
         if user is None:
             return {"status":"failure", "result":"Could not create user."}
+        admin = database.toggle_admin(user["id"])
+        if admin is None or not admin:
+            return {"status":"failure", "result":"Could not set user to admin."}
         return {"status":"success", "result":totp_secret}
 
     invite = database.get_invite_code(info.invite_code)

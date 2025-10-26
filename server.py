@@ -8,7 +8,7 @@ import base64
 from pathlib import Path
 from PIL import Image
 import io
-
+import os
 from auth import router as auth_router
 from persistent import router as peristent_router
 from persistent import broadcast
@@ -137,16 +137,19 @@ async def admin(session, data):
         return {"status":"success", "result":"User successfully made administrator."}
     else: return {"status":"success", "result":"User successfully removed administrator privileges."}
 
-async def reset_profile_picture(session, data):
+async def delete_profile_picture(session, data):
     user = database.get_user_by_id(session.user_id)
-    if user is None or not user["admin"]:
+    if user is None or (not user["admin"] or user.id != data.user_id):
         return {"status":"failure", "result":"You do not have permission to delete this profile picture."}
-    #delete the file if it exists for info.user_id in /interface/images/users/userid.webp
-    return {"status":"success", "result":"Deleted user profile picture."}
+    file_path = f"/interface/images/users/{data.user_id}.webp"
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return {"status":"success", "result":"Deleted user profile picture."}
+    return {"status":"failure", "result":"Could not delete user profile picture."}
 
 async def rename(session, data):
     user = database.get_user_by_id(session.user_id)
-    if user is None or not user["admin"]:
+    if user is None or (not user["admin"] or user.id != data.user_id):
         return {"status":"failure", "result":"You do not have permission to rename this user."}
     newname = database.rename_user(data.user_id)
     if newname is None:
@@ -170,6 +173,6 @@ type_function_map = {
     "ban": ban,
     "restrict": restrict,
     "admin": admin,
-    "reset_profile_picture":reset_profile_picture,
+    "delete_profile_picture":delete_profile_picture,
     "rename":rename
 }
