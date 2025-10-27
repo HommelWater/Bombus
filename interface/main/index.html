@@ -21,18 +21,17 @@
             <img src="./images/cato.png" style="width: 100%; height:auto;cursor: pointer;" id="main-image">
             <h2>Settings</h2>
             <div class="sidebar-item">
-                <div id="profile-picture-item" style="display:flex;">
-                    <label class="profile-picture-input-label" for="profile-picture-input">Change Profile Picture</label>
+                <div id="profile-picture-item" style="display:flex;margin:2px">
+                    <label class="profile-picture-input-label btn left" for="profile-picture-input">Change Profile Picture</label>
                     <input type="file" id="profile-picture-input">
                 </div>
-                <div id="invite-code-item" style="display:flex;">
-                    <button id="new-invite-button" style="width:100%" class="btn">New Invite</button>
+                <div id="invite-code-item" style="display:flex;margin:2px">
+                    <button id="new-invite-button" style="width:100%" class="btn left">New Invite</button>
                 </div>
-                <div id="add-channel-item" style="display:flex;">
-                    <button id="add-channel-button" style="width:100%" class="btn">Add Channel</button>
+                <div id="add-channel-item" style="display:flex;margin:2px">
+                    <button id="add-channel-button" style="width:100%" class="btn left">Add Channel</button>
                 </div>
-            </div>
-            
+            </div>          
             <h2>Channels</h2>
             <div id="channels"></div>
         </div>
@@ -48,7 +47,7 @@
             <div id="chat-window" style="color: var(--color-text);"></div>
         <div class="form-group">
             <textarea id="user-input" placeholder="Type your message here..."></textarea>
-            <button id="send-button" class="btn">Send</button>
+            <button id="send-button" style="height:100%;" class="btn up">Send</button>
         </div>
         </div>
         <div id ="sidebar-r" class="sidebar">

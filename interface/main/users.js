@@ -5,15 +5,15 @@ function createUserSidebarDiv(user){
     let settingsHTML = ``;
     if (user.admin){
         settingsHTML = `
-            <div id="ban-user" class="user-setting btn">Ban</div>
-            <div id="restrict-user" class="user-setting btn">Restrict</div>
-            <div id="admin-user" class="user-setting btn">Make Admin</div>
-            <div id="rename-user" class="user-setting btn">Rename</div>
-            <div id="delete-pfp-user" class="user-setting btn">Delete pfp</div>`
+            <div id="ban-user" class="user-setting btn right">Ban</div>
+            <div id="restrict-user" class="user-setting btn right">Restrict</div>
+            <div id="admin-user" class="user-setting btn right">Make Admin</div>
+            <div id="rename-user" class="user-setting btn right">Rename</div>
+            <div id="delete-pfp-user" class="user-setting btn right">Delete pfp</div>`
     } else if (user.id == current_user_id){
         settingsHTML = `
-            <div id="rename-user" class="user-setting btn">Rename</div>
-            <div id="delete-pfp-user" class="user-setting btn">Delete pfp</div>`
+            <div id="rename-user" class="user-setting btn right">Rename</div>
+            <div id="delete-pfp-user" class="user-setting btn right">Delete pfp</div>`
     }
     const userHTML = `
         <div id="user-${user.id}" class="sidebar-item" data-id="${user.id}">

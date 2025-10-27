@@ -83,7 +83,7 @@ function createChannelDiv(channel){
             <div id="channel-${id}-name" style="margin-top: auto; margin-bottom: auto;">
                 ${channel.name}
             </div>
-            <div id="channel-${id}-join-button" class="btn join-channel-button" style="margin-left: auto; padding: 8px;">
+            <div id="channel-${id}-join-button" class="btn join-channel-button left" style="margin-left: auto; padding: 8px;">
                 🎤
             </div>
         </div>

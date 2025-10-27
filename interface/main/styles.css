@@ -28,7 +28,8 @@ body {
 
 h2 {
 	color: var(--color-text);
-	font-size: 2.4rem;
+	font-size: 1.1rem;
+	margin: 0px;
 }
 
 h3 {
@@ -81,11 +82,6 @@ p {
 	overflow: hidden;
 	min-height: 0;
 	flex: 1;
-}
-
-h2 {
-	margin: 0px;
-	color: var(--color-text);
 }
 
 /* chat area: the only scrolling region */
@@ -141,8 +137,8 @@ textarea {
 
 /* send button */
 .btn {
-	padding: 12px 18px;
-	border: none;
+	padding:3px;
+	border: 1px solid var(--color-border);
 	cursor: pointer;
 	font-weight: 600;
 	background: var(--color-button);
@@ -156,8 +152,20 @@ textarea {
 	font-size:medium;
 }
 
-.btn:hover {
-	transform: translateY(-2px);
+.left:hover {
+	transform: translateX(3px);
+	background: var(--color-button-h);
+	opacity: 0.98;
+}
+
+.right:hover {
+	transform: translateX(-3px);
+	background: var(--color-button-h);
+	opacity: 0.98;
+}
+
+.up:hover {
+	transform: translateY(-3px);
 	background: var(--color-button-h);
 	opacity: 0.98;
 }
@@ -220,7 +228,6 @@ input[type="file"] {
 .profile-picture-input-label {
 	text-align: center;
     display: inline-block;
-    padding: 12px 18px;
 	width: 100%;
     color: var(--color-text);
     cursor: pointer;
@@ -291,9 +298,10 @@ img {
 
 .user-settings{
 	display: none;
-	background:var(--color-background);
-	border: 1px solid var(--color-border);
-	margin:1px;
+}
+
+.user-setting{
+	margin:2px;
 }
 
 .sidebar-item:hover{

@@ -36,19 +36,19 @@ async def request(info:RequestInfo):
     session = database.get_session(info.session_key)
     if session is None:
         return {"status":"failure", "result":"Could not find session."}
-    return type_function_map[info.type](session, info.data)
+    return await type_function_map[info.type](session, info.data)
 
 async def invite(session, data):
     invite_code = pyotp.random_hex()[:12]
-    idx = database.create_invite_code(invite_code, session["user_id"], data.uses)
+    idx = database.create_invite_code(invite_code, session["user_id"], data["uses"])
     if idx is None:
         return {"status":"failure", "result":"Could not create invite code."}
     return {"status":"success", "result":invite_code}
 
 async def channel(session, data):
-    if data.name is None:
+    if data["name"] is None:
         return {"status":"failure", "result":"No channel name given."}
-    idx = database.create_channel(data.name)
+    idx = database.create_channel(data["name"])
     if idx is None:
         return {"status":"failure", "result":"Could not create channel."}
     await broadcast({"channels":database.get_channels()})
@@ -56,7 +56,7 @@ async def channel(session, data):
 
 async def profile_picture(session, data):
     user_id = session["user_id"]
-    file_data = base64.b64decode(data.file)
+    file_data = base64.b64decode(data["file"])
     
     try:
         image = Image.open(io.BytesIO(file_data))
@@ -81,34 +81,34 @@ async def profile_picture(session, data):
         return {"status": "failure", "result": f"Error processing image: {str(e)}"}
 
 async def load_old_posts(session, data):
-    posts = database.get_posts_before(data.channel_id, data.from_post, 50)
+    posts = database.get_posts_before(data["channel_id"], data["from_post"], 50)
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
     return {"status":"success", "result":posts}
 
 async def load_new_posts(session, data):
-    posts = database.get_posts_after(data.channel_id, data.from_post, 50)
+    posts = database.get_posts_after(data["channel_id"], data["from_post"], 50)
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
     return {"status":"success", "result":posts}
 
 async def search(session, data):
-    posts = database.search_posts(data.channel_id, data.query)
+    posts = database.search_posts(data["channel_id"], data["query"])
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
     return {"status":"success", "result":posts}
 
 async def context(session, data):
-    channel_id, posts = database.get_neighboring_posts(data.post_id)
+    channel_id, posts = database.get_neighboring_posts(data["post_id"])
     if posts is None:
         return {"status":"failure", "result":"Could not get posts."}
     return {"status":"success", "result":posts}
 
 async def ban(session, data):
-    user = database.get_user_by_id(session.user_id)
+    user = database.get_user_by_id(session["user_id"])
     if user is None or not user["admin"]:
         return {"status":"failure", "result":"You do not have permission to ban users."}
-    banned = database.toggle_ban(data.user_id)
+    banned = database.toggle_ban(data["user_id"])
     if banned is None:
         return {"status":"failure", "result":"Could not ban or unban user."}
     if banned:
@@ -116,10 +116,10 @@ async def ban(session, data):
     else: return {"status":"success", "result":"User successfully unbanned."}
 
 async def restrict(session, data):
-    user = database.get_user_by_id(session.user_id)
+    user = database.get_user_by_id(session["user_id"])
     if user is None or not user["admin"]:
         return {"status":"failure", "result":"You do not have permission to restrict users."}
-    restricted = database.toggle_restrict(data.user_id)
+    restricted = database.toggle_restrict(data["user_id"])
     if restricted is None:
         return {"status":"failure", "result":"Could not restrict or unrestrict user."}
     if restricted:
@@ -127,10 +127,10 @@ async def restrict(session, data):
     else: return {"status":"success", "result":"User successfully unrestricted."}
 
 async def admin(session, data):
-    user = database.get_user_by_id(session.user_id)
+    user = database.get_user_by_id(session["user_id"])
     if user is None or not user["admin"]:
         return {"status":"failure", "result":"You do not have permission to make users administrator."}
-    admin = database.toggle_admin(data.user_id)
+    admin = database.toggle_admin(data["user_id"])
     if admin is None:
         return {"status":"failure", "result":"Could not give or take admin privileges."}
     if admin:
@@ -138,20 +138,20 @@ async def admin(session, data):
     else: return {"status":"success", "result":"User successfully removed administrator privileges."}
 
 async def delete_profile_picture(session, data):
-    user = database.get_user_by_id(session.user_id)
-    if user is None or (not user["admin"] or user.id != data.user_id):
+    user = database.get_user_by_id(session["user_id"])
+    if user is None or (not user["admin"] or user.id != data["user_id"]):
         return {"status":"failure", "result":"You do not have permission to delete this profile picture."}
-    file_path = f"/interface/images/users/{data.user_id}.webp"
+    file_path = f"/interface/images/users/{data["user_id"]}.webp"
     if os.path.exists(file_path):
         os.remove(file_path)
         return {"status":"success", "result":"Deleted user profile picture."}
     return {"status":"failure", "result":"Could not delete user profile picture."}
 
 async def rename(session, data):
-    user = database.get_user_by_id(session.user_id)
-    if user is None or (not user["admin"] or user.id != data.user_id):
+    user = database.get_user_by_id(session["user_id"])
+    if user is None or (not user["admin"] or user.id != data["user_id"]):
         return {"status":"failure", "result":"You do not have permission to rename this user."}
-    newname = database.rename_user(data.user_id)
+    newname = database.rename_user(data["user_id"])
     if newname is None:
         return {"status":"failure", "result":"Could not rename user."}
     return {"status":"success", "result":f"Renamed user to '{newname}'."}

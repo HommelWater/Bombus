@@ -5,7 +5,7 @@ export async function onLoadRequests(){
 
 async function request(type, data){
     const session = localStorage.getItem("session");
-	const res = await fetch(endpoint, {
+	const res = await fetch("/request", {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ "session_key":session, "type":type, "data":data })
