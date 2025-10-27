@@ -200,6 +200,9 @@ textarea {
 	body, html{
 		overscroll-behavior: initial;
 	}
+	#chat-header-search{
+		margin-right:40px;
+	}
 }
 
 /* accessibility: focus outlines */
@@ -306,6 +309,11 @@ img {
 
 .sidebar-item:hover{
 	cursor:pointer;
+}
+
+.go-to-button{
+	margin-left:auto;
+	margin-right:0px;
 }
 
 /*lbv*/

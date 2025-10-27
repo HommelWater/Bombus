@@ -17,3 +17,4 @@ progressive web app stuff
 improve search looks
 final rewrite once feature complete and confident enough in the shape
 verify security (probably best once feature complete), add rate limiting
+length limits to posts/messages/renames/channel_names

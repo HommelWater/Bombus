@@ -1,5 +1,5 @@
 import { user_id as current_user_id } from "/main/persistent.js";
-import { requestToggleBanUser, requestToggleAdminUser, requestToggleRestrictUser } from "/main/requests.js";
+import { requestToggleBanUser, requestToggleAdminUser, requestToggleRestrictUser, requestDeleteUserPfp } from "/main/requests.js";
 
 function createUserSidebarDiv(user){
     let settingsHTML = ``;
@@ -39,7 +39,7 @@ function setSettingsListeners(userDiv) {
     settingsDiv.querySelectorAll('.user-setting').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            handleUserAction(user_id, btn.dataset.action);
+            handleUserAction(user_id, btn.id);
             settingsDiv.style.display = "none";
         });
     });
@@ -47,11 +47,11 @@ function setSettingsListeners(userDiv) {
 
 function handleUserAction(user_id, action) {
     const actions = {
-        'ban': () => requestToggleBanUser(user_id),
-        'restrict': () => requestToggleRestrictUser(user_id),
-        'admin': () => requestToggleAdminUser(user_id),
-        'rename': () => console.log(`Rename user: ${user_id}`),
-        'delete-pfp': () => requestResetUserPfp(user_id)
+        'ban-user': () => requestToggleBanUser(user_id),
+        'restrict-user': () => requestToggleRestrictUser(user_id),
+        'admin-user': () => requestToggleAdminUser(user_id),
+        'rename-user': () => console.log(`Rename user: ${user_id}`),
+        'delete-pfp-user': () => requestDeleteUserPfp(user_id)
     };
     
     if (actions[action]) {

@@ -23,6 +23,9 @@ async def login(info: LoginInfo):
     if not user["verified"]:
         database.verify_user(user["id"])
 
+    if user["banned"]:
+        return {"status":"failure", "result":"User is banned from this server."}
+
     session_key = str(uuid.uuid4())
     idx = database.create_session(session_key, user["id"])
     if idx is None:
@@ -37,7 +40,8 @@ async def signup(info: SignupInfo):
         user = database.create_user(info.username, totp_secret, 1)
         if user is None:
             return {"status":"failure", "result":"Could not create user."}
-        admin = database.toggle_admin(user["id"])
+        
+        admin = database.toggle_admin(user)
         if admin is None or not admin:
             return {"status":"failure", "result":"Could not set user to admin."}
         return {"status":"success", "result":totp_secret}

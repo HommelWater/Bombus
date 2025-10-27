@@ -134,7 +134,7 @@ export async function search(){
     const chatWindow = document.getElementById("chat-window");
     const postDivs = posts.map(post =>{
         const div = createPostDiv(post);
-        return `<div class=search-post style="display:flex">${div}<button id="go-to-${post.id}" data-id="${post.id}" class="btn go-to-button">📄</button></div>`;
+        return `<div class=search-post style="display:flex">${div}<button id="go-to-${post.id}" data-id="${post.id}" class="btn go-to-button up">🔍</button></div>`;
     });
     chatWindow.innerHTML = postDivs.join("");
     document.querySelectorAll('.go-to-button').forEach(d =>{

@@ -139,9 +139,9 @@ async def admin(session, data):
 
 async def delete_profile_picture(session, data):
     user = database.get_user_by_id(session["user_id"])
-    if user is None or (not user["admin"] or user.id != data["user_id"]):
+    if user is None or (not user["admin"] and user["id"] != data["user_id"]):
         return {"status":"failure", "result":"You do not have permission to delete this profile picture."}
-    file_path = f"/interface/images/users/{data["user_id"]}.webp"
+    file_path = f"./interface/images/users/{data["user_id"]}.webp"
     if os.path.exists(file_path):
         os.remove(file_path)
         return {"status":"success", "result":"Deleted user profile picture."}
@@ -149,7 +149,7 @@ async def delete_profile_picture(session, data):
 
 async def rename(session, data):
     user = database.get_user_by_id(session["user_id"])
-    if user is None or (not user["admin"] or user.id != data["user_id"]):
+    if user is None or (not user["admin"] and user["id"] != data["user_id"]):
         return {"status":"failure", "result":"You do not have permission to rename this user."}
     newname = database.rename_user(data["user_id"])
     if newname is None:
