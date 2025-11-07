@@ -1,2 +1,2 @@
-# BBuzz
-Decentral Application with firewall hole-punching
+# Bombus
+Self-hostable chat application.
