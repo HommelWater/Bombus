@@ -1,21 +1,8 @@
-handle keyboard inputs better, especially in login page make the enter button log the user in.
-image loading causes the chat move upwards, adding too big of a delay makes it feel slow, debounce kinda sucks.
-user permissions and settings?
-sound effects
-nicer themes, probably fix those huge headers, theme creation competition would be amazing
-per user color, maybe message color based on sentiment?
-rewrite backend in c? (pyton is nice for customisability tho :)
-per user blog like pages?
-inter server communication? Use the server to forward messages from one user on a server to another user on another server.
-fast file hosting with nginx directly?
-bot api?
-
-Current Priorities:
-propper image hosting and uploading etc.
-progressive web app stuff
-final rewrite once feature complete and confident enough in the shape
-verify security (probably best once feature complete), add rate limiting
-length limits to posts/messages/renames/channel_names
-more properly implement banning someone, make admins override bans
-make volume slider work lol
-video chat
+Safety stuff, anti-spam/ddos stuff, max username lengths, clear up the input from HTML/CSS/JS (though make this optional, could be fun!).
+Make this into a progressive web app.
+Allow the user to find any message by id (like with search, add a button to find it in it's context) or by a link.
+File upload, have images just be stored in interface/images and have actual files be separate. 
+Probably allow users to upload then link to files with a tag in their chat or something. 
+Maybe auto send a message with such a tag when a file gets uploaded. 
+Add specific file viewer + copy file links, public or private settings etc.
+Automatic NGINX setup for hosting on an actual server (user examia code as reference) etc.

@@ -46,12 +46,10 @@ function getThemesFromCSS() {
 
 function init_themes(){
     themes = getThemesFromCSS();
-    //toggleTheme(0);
     const btn = document.createElement("button");
     btn.id = "theme-toggle";
     btn.className = "theme-toggle";
     btn.textContent = "🎨";
     document.documentElement.appendChild(btn);
     btn.addEventListener('click', ()=>toggleTheme(1));
-    console.log(themes)
 }

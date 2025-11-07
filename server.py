@@ -1,178 +1,124 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
-import database as database
-import pyotp
-import base64
-from pathlib import Path
-from PIL import Image
-import io
-import os
-from auth import router as auth_router
-from persistent import router as peristent_router
-from persistent import broadcast
+from fastapi.staticfiles import StaticFiles
+import asyncio
+from functions import auth, channels, users, voice, files, networking, database
+import inspect
+import logging
 
-database.init_database()
-app = FastAPI()
-app.include_router(auth_router, prefix="/auth")
-app.include_router(peristent_router, prefix="/persistent")
+def safe_call(func, data_dict):
+    sig = inspect.signature(func)
+    expected_params = list(sig.parameters.keys())
+    
+    filtered_data = {}
+    mismatched_params = []
+    
+    for k, v in data_dict.items():
+        if k in expected_params:
+            filtered_data[k] = v
+        else:
+            mismatched_params.append(k)
+    
+    if mismatched_params:
+        logging.warning(
+            f"Function {func.__name__} received unexpected parameters: {mismatched_params}. "
+            f"Expected: {expected_params}. Provided: {list(data_dict.keys())}"
+        )
+    return func(**filtered_data)
 
-class RequestInfo(BaseModel):
-    session_key: str
-    type:str
-    data:dict
+request_map = {
+    "authenticate":     auth.authenticate,
+    "get_invite":       auth.get_invite,
+
+    "get_channels":     channels.get_channels,
+    "create_channel":   channels.create_channel,
+    "get_posts":        channels.get_posts,
+    "send_post":        channels.send_post,
+
+    "get_users":        users.get_users,
+    "get_self":         users.get_self,
+    "set_username":     users.set_username,
+    "update_user":      users.update_user,
+    "update_activity":  users.update_activity,
+    "set_pfp":          users.set_pfp,
+    
+    "vc_get_users":     voice.get_users,
+    "vc_connect":       voice.connect,
+    "vc_offer":         voice.offer,
+    "vc_answer":        voice.answer,
+    "vc_candidate":     voice.candidate,
+    "vc_disconnect":    voice.disconnect,  
+}
+
+from contextlib import asynccontextmanager
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await database.init_database()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 async def read_root():
-    return FileResponse("./interface/main/index.html")
+    return FileResponse("./interface/app/index.html")
 
-@app.get("/login")
+@app.get("/auth")
 async def read_root():
-    return FileResponse("./interface/login/index.html")
+    return FileResponse("./interface/auth/index.html")
 
-@app.post("/request")
-async def request(info:RequestInfo):
-    session = database.get_session(info.session_key)
-    if session is None:
-        return {"status":"failure", "result":"Could not find session."}
-    return await type_function_map[info.type](session, info.data)
+@app.websocket("/ws")
+async def endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        user_id = None
+        while not user_id:
+            data = await websocket.receive_json()
+            if data.get("type", "") != "authenticate":
+                continue
+            if not data.get("data"):
+                continue
+            data["data"]["websocket"] = websocket
+            user_id = await safe_call(auth.authenticate, data["data"])
+    except WebSocketDisconnect as e:
+        print(e)
+        return
+    
+    async with networking.state_lock:
+        networking.connections[user_id] = websocket
 
-async def invite(session, data):
-    invite_code = pyotp.random_hex()[:12]
-    idx = database.create_invite_code(invite_code, session["user_id"], data["uses"])
-    if idx is None:
-        return {"status":"failure", "result":"Could not create invite code."}
-    return {"status":"success", "result":invite_code}
 
-async def channel(session, data):
-    if data["name"] is None:
-        return {"status":"failure", "result":"No channel name given."}
-    idx = database.create_channel(data["name"])
-    if idx is None:
-        return {"status":"failure", "result":"Could not create channel."}
-    await broadcast({"channels":database.get_channels()})
-    return {"status":"success", "result":idx}
-
-async def profile_picture(session, data):
-    user_id = session["user_id"]
-    file_data = base64.b64decode(data["file"])
+    await channels.get_channels(user_id)
+    await users.get_users(user_id)
+    await users.get_self(user_id)
+    await voice.get_users(user_id)
+    await networking.send(user_id, {"type":"session_login", "data":{"notification":"Successfully logged in."}})
     
     try:
-        image = Image.open(io.BytesIO(file_data))
-        if image.mode in ('RGBA', 'LA', 'P'):
-            background = Image.new('RGB', image.size, (255, 255, 255))
-            if image.mode == 'P':
-                image = image.convert('RGBA')
-            background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
-            image = background   
-        output_buffer = io.BytesIO()
-        image.save(output_buffer, format='WEBP', quality=85) 
-        webp_data = output_buffer.getvalue()
+        while True:
+            data = await websocket.receive_json()
+            print(data)
 
-        file_path = Path(f"./interface/images/users/{user_id}.webp")
-        file_path.parent.mkdir(exist_ok=True)
-        with open(file_path, "wb") as f:
-            f.write(webp_data)
-        
-        return {"status": "success", "message": "Profile picture updated."}
-    
+            message_type = data.get("type")
+            if not message_type or message_type not in request_map:
+                continue
+            
+            handler_func = request_map.get(message_type)
+            if not handler_func:
+                continue
+            
+            handler_data = {
+                "sender_user_id": user_id,
+                **(data.get("data", {})) 
+            }
+
+            await safe_call(handler_func, handler_data)
+    except WebSocketDisconnect:
+        async with networking.state_lock:
+            del networking.connections[user_id]
+        await voice.disconnect(user_id)
+    except KeyError as e:
+        logging.error(f"Missing expected key in WebSocket data: {e}")
     except Exception as e:
-        return {"status": "failure", "result": f"Error processing image: {str(e)}"}
-
-async def load_old_posts(session, data):
-    posts = database.get_posts_before(data["channel_id"], data["from_post"], 50)
-    if posts is None:
-        return {"status":"failure", "result":"Could not get posts."}
-    return {"status":"success", "result":posts}
-
-async def load_new_posts(session, data):
-    posts = database.get_posts_after(data["channel_id"], data["from_post"], 50)
-    if posts is None:
-        return {"status":"failure", "result":"Could not get posts."}
-    return {"status":"success", "result":posts}
-
-async def search(session, data):
-    posts = database.search_posts(data["channel_id"], data["query"])
-    if posts is None:
-        return {"status":"failure", "result":"Could not get posts."}
-    return {"status":"success", "result":posts}
-
-async def context(session, data):
-    channel_id, posts = database.get_neighboring_posts(data["post_id"])
-    if posts is None:
-        return {"status":"failure", "result":"Could not get posts."}
-    return {"status":"success", "result":posts}
-
-async def ban(session, data):
-    user = database.get_user_by_id(session["user_id"])
-    if user is None or not user["admin"]:
-        return {"status":"failure", "result":"You do not have permission to ban users."}
-    banned = database.toggle_banned(data["user_id"])
-    if banned is None:
-        return {"status":"failure", "result":"Could not ban or unban user."}
-    if banned:
-        return {"status":"success", "result":"User successfully banned."}
-    else: return {"status":"success", "result":"User successfully unbanned."}
-
-async def restrict(session, data):
-    user = database.get_user_by_id(session["user_id"])
-    if user is None or not user["admin"]:
-        return {"status":"failure", "result":"You do not have permission to restrict users."}
-    restricted = database.toggle_restricted(data["user_id"])
-    if restricted is None:
-        return {"status":"failure", "result":"Could not restrict or unrestrict user."}
-    if restricted:
-        return {"status":"success", "result":"User successfully restricted."}
-    else: return {"status":"success", "result":"User successfully unrestricted."}
-
-async def admin(session, data):
-    user = database.get_user_by_id(session["user_id"])
-    if user is None or not user["admin"]:
-        return {"status":"failure", "result":"You do not have permission to make users administrator."}
-    admin = database.toggle_admin(data["user_id"])
-    if admin is None:
-        return {"status":"failure", "result":"Could not give or take admin privileges."}
-    if admin:
-        return {"status":"success", "result":"User successfully made administrator."}
-    else: return {"status":"success", "result":"User successfully removed administrator privileges."}
-
-async def delete_profile_picture(session, data):
-    user = database.get_user_by_id(session["user_id"])
-    if user is None or (not user["admin"] and user["id"] != data["user_id"]):
-        return {"status":"failure", "result":"You do not have permission to delete this profile picture."}
-    file_path = f"./interface/images/users/{data["user_id"]}.webp"
-    if os.path.exists(file_path):
-        os.remove(file_path)
-        return {"status":"success", "result":"Deleted user profile picture."}
-    return {"status":"failure", "result":"Could not delete user profile picture."}
-
-async def rename(session, data):
-    user = database.get_user_by_id(session["user_id"])
-    if user is None or (not user["admin"] and user["id"] != data["user_id"]):
-        return {"status":"failure", "result":"You do not have permission to rename this user."}
-    newname = database.rename_user(data["user_id"])
-    if newname is None:
-        return {"status":"failure", "result":"Could not rename user."}
-    return {"status":"success", "result":f"Renamed user to '{newname}'."}
+        logging.error(f"Unexpected error in WebSocket handler: {e}")
 
 app.mount("/", StaticFiles(directory="./interface"), name="static")
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-type_function_map = {
-    "invite": invite,
-    "profile_picture": profile_picture,
-    "channel": channel,
-    "load_old_posts": load_old_posts,
-    "load_new_posts": load_new_posts,
-    "search": search,
-    "context": context,
-    "ban": ban,
-    "restrict": restrict,
-    "admin": admin,
-    "delete_profile_picture":delete_profile_picture,
-    "rename":rename
-}
