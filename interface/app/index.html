@@ -19,57 +19,30 @@
             <img id="main-image" src="/images/main.png">
             <div class="sidebar-items">
                 <div id="settings-header" class="sidebar-item-header"><h2>Settings</h2><h2>☰</h2></div>
-                    <div id="settings-content">
-                        <div id="profile-picture-item" class="sidebar-item">
+                <div id="settings-content">
+                    <div id="profile-picture-item" class="sidebar-item">
                         <label id="profile-picture-input-label" class="btn left" for="profile-picture-input">Change Profile Picture</label>
                         <input id="profile-picture-input" type="file" style="display:none">
                     </div>
-                    <div id="invite-code-item" class="sidebar-item">
-                        <button id="new-invite-button" style="width:100%" class="btn left">New Invite</button>
-                        <div id="invite-code-subitem" style="display:none">
-                            <input id="invite-code" placeholder="Loading..."></input>
-                            <button id="invite-code-close-button" class="btn left">Close</button>
-                        </div>
+                </div>
+                <div id="invite-code-item" class="sidebar-item">
+                    <button id="new-invite-button" style="width:100%" class="btn left">New Invite</button>
+                    <div id="invite-code-subitem" style="display:none">
+                        <input id="invite-code" placeholder="Loading..."></input>
+                        <button id="invite-code-close-button" class="btn left">Close</button>
                     </div>
-                    <div id="add-channel-item" class="sidebar-item">
-                        <button id="add-channel-button" class="btn left">Add Channel</button>
-                        <div id="add-channel-subitem" style="display:none">
-                            <input id="channel-name" placeholder="New channel name"></input>
-                            <button id="add-channel-add-button" class="btn left">Add</button>
-                        </div>
+                </div>
+                <div id="add-channel-item" class="sidebar-item">
+                    <button id="add-channel-button" class="btn left">Add Channel</button>
+                    <div id="add-channel-subitem" style="display:none">
+                        <input id="channel-name" placeholder="New channel name"></input>
+                        <button id="add-channel-add-button" class="btn left">Add</button>
                     </div>
                 </div>
             </div>
             <div class="sidebar-items">
                 <div id="channels-header" class="sidebar-item-header"><h2>Channels</h2><h2>☰</h2></div>
-                <div id="channels">
-                    <div class="channel">
-                        <div class="channel-main" style="display: flex;">
-                            <div class="channel-name">
-                                channel_name
-                            </div>
-                            <div class="btn left channel-join-button">
-                                🎤
-                            </div>
-                        </div>
-                        <div class="channel-users">
-                            <div class="vc-user" style="display:flex;">
-                                <img src="./images/users/1.webp" class="vc-user-icon">
-                                <div class="vc-user-info">
-                                    <div>username</div>
-                                    <input type="range" min="1" max="100" value="100" class="volume-slider">
-                                </div>
-                            </div>
-                            <div class="vc-user" style="display:flex;">
-                                <img src="./images/users/2.webp" class="vc-user-icon">
-                                <div class="vc-user-info">
-                                    <div>username</div>
-                                    <input type="range" min="1" max="100" value="100" class="volume-slider">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div id="channels"></div>
             </div>
         </div>
         <div id="chat" class="card">
@@ -81,36 +54,7 @@
                     <button id="search-button">🔍</button>
                 </div>
             </div>
-            <div id="chat-window">
-
-                <div class="chat-post">
-                    <div class="post-username">
-                        username
-                        <div class="post-date">
-                            01-01-2000
-                        </div>
-                    </div>
-                    <div class="post-content-group">
-                        <div class="post-content" id="post-${id}">
-                            text content of post
-                        </div>
-                    </div>
-                </div>
-                <div class="chat-post">
-                    <div class="post-username">
-                        username
-                        <div class="post-date">
-                            01-01-2000
-                        </div>
-                    </div>
-                    <div class="post-content-group">
-                        <div class="post-content" id="post-${id}">
-                            text content of post
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+            <div id="chat-window"></div>
             <div class="file-input">
                 <label for="files-input">📁 Add files...</label>
                 <input type="file" id="files-input" multiple style="display:none">
@@ -124,26 +68,7 @@
         <div id ="sidebar-r" class="sidebar">
             <div class="sidebar-items">
                 <div id="users-header" class="sidebar-item-header"><h2>Users</h2><h2>☰</h2></div>
-                <div id="user-list">
-                    <div class="sidebar-item user">
-                        <div style="display: flex;">
-                            <img class="user-icon" src="/images/users/1.webp">
-                            <div style="margin-top: auto; margin-bottom: auto;">
-                                username
-                            </div>
-                            <div class="user-activity" style="margin-left: auto; padding: 8px;">
-                                🟢
-                            </div>
-                        </div>
-                        <div class="user-settings">
-                            <div class="user-setting btn right ban-user">Ban</div>
-                            <div class="user-setting btn right restrict-user">Restrict</div>
-                            <div class="user-setting btn right admin-user">Make Admin</div>
-                            <div class="user-setting btn right rename-user">Rename</div>
-                            <div class="user-setting btn right change-pfp-user">Change pfp</div>
-                        </div>
-                    </div>
-                </div>
+                <div id="user-list"></div>
             </div>
         </div>
     </div>
