@@ -108,7 +108,7 @@ async def ban(session, data):
     user = database.get_user_by_id(session["user_id"])
     if user is None or not user["admin"]:
         return {"status":"failure", "result":"You do not have permission to ban users."}
-    banned = database.toggle_ban(data["user_id"])
+    banned = database.toggle_banned(data["user_id"])
     if banned is None:
         return {"status":"failure", "result":"Could not ban or unban user."}
     if banned:
@@ -119,7 +119,7 @@ async def restrict(session, data):
     user = database.get_user_by_id(session["user_id"])
     if user is None or not user["admin"]:
         return {"status":"failure", "result":"You do not have permission to restrict users."}
-    restricted = database.toggle_restrict(data["user_id"])
+    restricted = database.toggle_restricted(data["user_id"])
     if restricted is None:
         return {"status":"failure", "result":"Could not restrict or unrestrict user."}
     if restricted:

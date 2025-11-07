@@ -1,13 +1,13 @@
-import { user_id as current_user_id } from "/main/persistent.js";
+import { user_id as current_user_id, users } from "/main/persistent.js";
 import { requestToggleBanUser, requestToggleAdminUser, requestToggleRestrictUser, requestDeleteUserPfp } from "/main/requests.js";
 
 function createUserSidebarDiv(user){
     let settingsHTML = ``;
-    if (user.admin){
+    if (users[current_user_id].admin){
         settingsHTML = `
-            <div id="ban-user" class="user-setting btn right">Ban</div>
-            <div id="restrict-user" class="user-setting btn right">Restrict</div>
-            <div id="admin-user" class="user-setting btn right">Make Admin</div>
+            <div id="ban-user" class="user-setting btn right">${user.banned ? `Unban` : `Ban`}</div>
+            <div id="restrict-user" class="user-setting btn right">${user.restricted ? `Unrestrict` : `Restrict`}</div>
+            <div id="admin-user" class="user-setting btn right">Make Peasant</div>
             <div id="rename-user" class="user-setting btn right">Rename</div>
             <div id="delete-pfp-user" class="user-setting btn right">Delete pfp</div>`
     } else if (user.id == current_user_id){

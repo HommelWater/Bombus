@@ -205,6 +205,10 @@ textarea {
 	}
 }
 
+#sidebar-button:hover, #search-button:hover{
+	cursor:pointer;
+}
+
 /* accessibility: focus outlines */
 button:focus,
 textarea:focus {
@@ -259,7 +263,6 @@ input[type="file"] {
   margin-top:auto;
   margin-bottom: auto;
   border-radius: 0px;
-  display:none;
 }
 
 /* Mouse-over effects */

@@ -1,7 +1,14 @@
-import { socket } from "/main/persistent.js";
-export let currentVoiceChannel = -1;
+import { socket, user_id as current_user_id } from "/main/persistent.js";
+let currentVoiceChannel = -1;
 const peerConnections = new Map();
+export const userVolumePrefs = JSON.parse(localStorage.getItem("userVolumePrefs") || "{}");
+const userAudioElements = new Map();
 let localStream; 
+let masterVolume = parseFloat(localStorage.getItem("masterVolume") || "1.0");
+
+export function getCurrentVoiceChannel(){
+    return currentVoiceChannel;
+}
 
 async function createOfferFor(targetUserId) {
     const pc = new RTCPeerConnection();
@@ -12,7 +19,10 @@ async function createOfferFor(targetUserId) {
     pc.ontrack = (event) => {
         const audio = new Audio();
         audio.srcObject = event.streams[0];
+        const savedVolume = userVolumePrefs[targetUserId] ?? 1.0;
+        audio.volume = savedVolume * masterVolume;
         audio.play();
+        userAudioElements.set(targetUserId, audio);
     };
     
     pc.onicecandidate = (event) => {
@@ -60,6 +70,8 @@ export function leaveChannel() {
     peerConnections.forEach(pc => pc.close());
     peerConnections.clear();
     currentVoiceChannel = -1;
+    userAudioElements.forEach(audio => audio.pause());
+    userAudioElements.clear();
 }
 
 export function onLoadVoice(){
@@ -82,6 +94,11 @@ async function disconnect(data){
     const pc = peerConnections.get(user_id);
     if (pc) pc.close();
     peerConnections.delete(user_id);
+    const audio = userAudioElements.get(user_id);
+    if (audio) {
+        audio.pause();
+        userAudioElements.delete(user_id);
+    }
 }
 
 async function offer(data) {
@@ -141,4 +158,18 @@ const voice_packet_types = {
     "answer":answer,
     "candidate":candidate,
     "disconnect":disconnect
+}
+
+export function getUserVolume(userId){
+    return 
+}
+
+export function setUserVolume(userId, volume) {
+    const clampedVolume = Math.min(Math.max(volume, 0), 1);
+    userVolumePrefs[userId] = clampedVolume;
+    const audio = userAudioElements.get(userId);
+    if (audio) {
+        audio.volume = clampedVolume * userVolumePrefs[current_user_id];
+    }
+    localStorage.setItem("userVolumePrefs", JSON.stringify(userVolumePrefs));
 }

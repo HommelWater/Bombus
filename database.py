@@ -15,7 +15,7 @@ def init_database():
                 restricted BOOLEAN DEFAULT 0,
                 banned BOOLEAN DEFAULT 0,
                 admin BOOLEAN DEFAULT 0,
-                FOREIGN KEY (referer_id) REFERENCES users (id)
+                FOREIGN KEY (referer_id) REFERENCES users (id) ON DELETE SET NULL
             )
         ''')
         conn.execute('''
@@ -25,7 +25,7 @@ def init_database():
                 user_id INTEGER,
                 created_at INTEGER DEFAULT (strftime('%s', 'now')),
                 last_used INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (user_id) REFERENCES users (id)
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
         ''')
         conn.execute('''
@@ -36,7 +36,7 @@ def init_database():
                 uses INTEGER,
                 created_at INTEGER DEFAULT (strftime('%s', 'now')),
                 last_used INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (inviter_id) REFERENCES users (id)
+                FOREIGN KEY (inviter_id) REFERENCES users (id) ON DELETE CASCADE
             )
         ''')
         conn.execute('''
@@ -47,14 +47,22 @@ def init_database():
             )
         ''')
         conn.execute('''
+            CREATE TABLE IF NOT EXISTS channel_users (
+                channel_id INTEGER,
+                user_id INTEGER,
+                FOREIGN KEY (channel_id) REFERENCES channels (id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+            )
+        ''')
+        conn.execute('''
             CREATE TABLE IF NOT EXISTS posts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 channel INTEGER,
                 user_id INTEGER,
                 content TEXT,
                 created_at INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (user_id) REFERENCES users (id),
-                FOREIGN KEY (channel) REFERENCES channels (id)
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY (channel) REFERENCES channels (id) ON DELETE CASCADE
             )
         ''')
         conn.execute('''
@@ -483,3 +491,24 @@ def reset_posts():
     with sqlite3.connect(db_path) as conn:
         conn.execute("DELETE FROM posts;")
         conn.commit()
+
+import shutil
+import os
+
+def create_anonymized_database(original_db_path, output_db_path):
+    original_db_path = os.path.abspath(os.path.normpath(original_db_path))
+    output_db_path = os.path.abspath(os.path.normpath(output_db_path))
+    
+    #dont do stupid shit pls lol.
+    assert original_db_path != output_db_path, "Input and output paths must be different"
+    assert os.path.exists(original_db_path), "Source database does not exist"
+    assert not os.path.exists(output_db_path), "Output file already exists"
+
+    shutil.copy2(original_db_path, output_db_path)
+    
+    with sqlite3.connect(output_db_path) as conn:
+        conn.execute("UPDATE users SET totp_secret = ''")
+        conn.execute("UPDATE sessions SET key = ''")
+        conn.execute("UPDATE invites SET code = ''")        
+        conn.commit()
+    return output_db_path

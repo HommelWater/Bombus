@@ -1,8 +1,10 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import database
 import time
+import asyncio
 
 router = APIRouter(tags=["persistent"])
+state_lock = asyncio.Lock()
 
 connections = {}
 @router.websocket("/ws")
@@ -14,11 +16,11 @@ async def endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             print(data)
-            session, user = await base_packet_types[data["type"]](websocket, data["data"], session, user)
+            async with state_lock:
+                session, user = await base_packet_types[data["type"]](websocket, data["data"], session, user)
     except WebSocketDisconnect:
-        connections.pop(user["id"]) 
+        connections.pop(user["id"])
         await onActivity(websocket, {"user_id":user["id"], "active":False}, session, user)
-        await vc_disconnect(websocket, {}, session, user)
 
 async def onHello(websocket: WebSocket, data, session, user):
     session_key = data.get("session")
@@ -60,17 +62,22 @@ async def onActivity(websocket: WebSocket, data, session, user):
     return session, user
 
 async def onMessage(websocket: WebSocket, data, session, user):
+    if (user["restricted"] or user["banned"]) and not user["admin"]:
+        return session, user 
     post_id = database.add_post(user["id"], data["channel"], data["content"])
     data = database.get_post(post_id)
     await broadcast({"type":"message", "data":data})
     return session, user
 
 async def broadcast(json):
+    print(json)
     for k, c in connections.items():
         await c.send_json(json)
 
 channel_peers = {}
 async def vc_offer(websocket: WebSocket, data, session, user):
+    if (user["banned"] or user["restricted"]) and not user["admin"]:
+        return session, user
     user_id = user["id"]
     offer = data["offer"]
     target_id = data["id"]
@@ -79,6 +86,8 @@ async def vc_offer(websocket: WebSocket, data, session, user):
     return session, user
 
 async def vc_answer(websocket: WebSocket, data, session, user):
+    if (user["banned"] or user["restricted"]) and not user["admin"]:
+        return session, user
     target_user_id = data["id"]
     user_id = user["id"]
     answer = data["answer"]
@@ -86,6 +95,8 @@ async def vc_answer(websocket: WebSocket, data, session, user):
     return session, user
 
 async def vc_candidate(websocket: WebSocket, data, session, user):
+    if (user["banned"] or user["restricted"]) and not user["admin"]:
+        return session, user
     user_id = user["id"]
     candidate = data["candidate"]
     target_id = data["id"]
@@ -94,6 +105,8 @@ async def vc_candidate(websocket: WebSocket, data, session, user):
     return session, user
 
 async def vc_connect(websocket: WebSocket, data, session, user):
+    if (user["banned"] or user["restricted"]) and not user["admin"]:
+        return session, user
     channel_id = data.get("channel_id")
     user_id = user["id"]
     if channel_peers.get(channel_id) is None:

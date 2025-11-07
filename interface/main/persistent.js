@@ -1,6 +1,6 @@
 
-import { selected_channel, displayChannel, loadChannels, createVoiceChannelUserDiv, joinChannelVC } from "/main/channels.js";
-import { currentVoiceChannel } from "/main/voice.js";
+import { selected_channel, displayChannel, loadChannels, createVoiceChannelUserDiv, joinChannelVC, attachVoiceVolumeListeners } from "/main/channels.js";
+import { getCurrentVoiceChannel } from "/main/voice.js";
 import { loadUsers, setActivity } from "/main/users.js";
 export let socket;
 export let user_id;
@@ -37,6 +37,7 @@ function hello(data){
     Object.values(channels).forEach(channel=>{
         channel.connected_users.forEach(user=>{
             if (user === user_id){
+                console.log("User was still in voice channel, reconnecting...");
                 joinChannelVC(channel.id);
             }
         })
@@ -99,13 +100,14 @@ function error(data){
 function vc_users(data){
     const channelDiv = document.getElementById(`channel-${data.channel_id}-users`)
     channelDiv.innerHTML = data.users.map(user=>createVoiceChannelUserDiv(user, data.channel_id)).join('');
-    channelDiv.style =`${data.channel_id === currentVoiceChannel ? `` : `display:flex;`}`
-    document.querySelectorAll(`.slider`).forEach(d=>d.style.display = "none");
-    if (data.channel_id === currentVoiceChannel){
-        document.querySelectorAll(`.volume-${data.channel_id}`).forEach(d=>d.style.display = "inline-block");
+    channelDiv.style =`${data.channel_id === getCurrentVoiceChannel() ? `` : `display:flex;`}`
+    document.querySelectorAll(`.vc-user-info`).forEach(d=>d.style.display = "none");
+    console.log(`"current channel ${getCurrentVoiceChannel()}"`)
+    if (data.channel_id === getCurrentVoiceChannel()){
+        document.querySelectorAll(`.vc-user-info-${data.channel_id}`).forEach(d=>d.style.display = "inline-block");
     }
+    attachVoiceVolumeListeners(channelDiv);
 }
-
 
 //Websocket setup.
 export function onLoadPersistent(ws_url){

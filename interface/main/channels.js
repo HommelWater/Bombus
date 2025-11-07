@@ -1,6 +1,6 @@
-import { channels, old_message, new_message, setPosts, postRange } from "/main/persistent.js";
+import { channels, old_message, new_message, setPosts, postRange, users } from "/main/persistent.js";
 import { requestOlderPosts, requestNewerPosts, requestPostContext, searchRequest } from "/main/requests.js";
-import { currentVoiceChannel, joinChannel, leaveChannel } from "/main/voice.js";
+import { getCurrentVoiceChannel, joinChannel, leaveChannel, userVolumePrefs, setUserVolume } from "/main/voice.js";
 export let selected_channel = 1;
 
 function timeIntToString(time){
@@ -57,7 +57,7 @@ export function joinChannelVC(channelId){
     document.querySelectorAll(".join-channel-button").forEach((element) => {
         element.innerHTML = "🎤";
     });
-    if (currentVoiceChannel == channelId) {
+    if (getCurrentVoiceChannel() == channelId) {
         leaveChannel();
     } else {
         joinChannel(channelId);
@@ -65,15 +65,34 @@ export function joinChannelVC(channelId){
     }
 }
 
-export function createVoiceChannelUserDiv(user, channel){
+export function createVoiceChannelUserDiv(user_id, channel){
+    const user = users[user_id];
     const html = `
     <div class="vc-user" style="display:flex;">
-        <img src="./images/users/${user}.webp" style="width:25px;height:25px; margin-right: 2px;" title="${user}">
-        <input type="range" min="1" max="100" value="100" class="slider volume-${channel}" id="volume-${user}">
+        <img src="./images/users/${user_id}.webp" style="width:40px;height:40px; margin-right: 2px;" title="${user_id}">
+        <div class="vc-user-info vc-user-info-${channel}">
+            <div>${user.username}</div>
+            <input type="range" min="1" max="100" value="100" class="slider volume-${channel}" data-id="${user_id}" id="volume-${user_id}">
+        </div>
     </div>
     `;
     return html
 }
+
+export function attachVoiceVolumeListeners(channelDiv) {
+    const userDivs = channelDiv.querySelectorAll(".vc-user");
+    userDivs.forEach(div => {
+        const slider = div.querySelector("input[type='range']");
+        if (!slider) return;
+        const userId = slider.dataset.id;
+        const savedVolume = userVolumePrefs[userId] ?? 1.0;
+        slider.value = savedVolume * 100;
+        slider.addEventListener("change", (e) => {
+            setUserVolume(userId, e.target.value / 100)
+        });
+    });
+}
+
 
 function createChannelDiv(channel){
     const id = channel.id;
@@ -101,6 +120,7 @@ export function loadChannels(channels){
 }
 
 export function displayChannel(channel, highlighted_post){
+    console.log(`displaying channel: ${channel.id}`);
     if(!channel) return;
     selected_channel = channel.id;
     const chatWindow = document.getElementById("chat-window");
