@@ -140,6 +140,11 @@ async def create_channel(cursor, name):
     await cursor.execute("INSERT INTO channels (name) VALUES (?)", (name,))
     return cursor.lastrowid
 
+@async_with_db(commit=True)
+async def delete_channel(cursor, id):
+    await cursor.execute("DELETE FROM channels WHERE id = ?", (id,))
+    return cursor.rowcount > 0
+
 # POSTS
 
 @async_with_db()

@@ -32,6 +32,7 @@ request_map = {
 
     "get_channels":     channels.get_channels,
     "create_channel":   channels.create_channel,
+    "delete_channel":   channels.delete_channel,
     "get_posts":        channels.get_posts,
     "send_post":        channels.send_post,
 

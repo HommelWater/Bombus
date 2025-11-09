@@ -18,29 +18,6 @@
         <div id ="sidebar-l" class="sidebar">
             <img id="main-image" src="/images/main.png">
             <div class="sidebar-items">
-                <div id="settings-header" class="sidebar-item-header"><h2>Settings</h2><h2>☰</h2></div>
-                <div id="settings-content">
-                    <div id="profile-picture-item" class="sidebar-item">
-                        <label id="profile-picture-input-label" class="btn left" for="profile-picture-input">Change Profile Picture</label>
-                        <input id="profile-picture-input" type="file" style="display:none">
-                    </div>
-                </div>
-                <div id="invite-code-item" class="sidebar-item">
-                    <button id="new-invite-button" style="width:100%" class="btn left">New Invite</button>
-                    <div id="invite-code-subitem" style="display:none">
-                        <input id="invite-code" placeholder="Loading..."></input>
-                        <button id="invite-code-close-button" class="btn left">Close</button>
-                    </div>
-                </div>
-                <div id="add-channel-item" class="sidebar-item">
-                    <button id="add-channel-button" class="btn left">Add Channel</button>
-                    <div id="add-channel-subitem" style="display:none">
-                        <input id="channel-name" placeholder="New channel name"></input>
-                        <button id="add-channel-add-button" class="btn left">Add</button>
-                    </div>
-                </div>
-            </div>
-            <div class="sidebar-items">
                 <div id="channels-header" class="sidebar-item-header"><h2>Channels</h2><h2>☰</h2></div>
                 <div id="channels"></div>
             </div>
@@ -66,6 +43,37 @@
             </div>
         </div>
         <div id ="sidebar-r" class="sidebar">
+            <div class="sidebar-items">
+                <div id="settings-header" class="sidebar-item-header"><h2>Settings</h2><h2>☰</h2></div>
+                <div id="settings-content">
+                        <div id="profile-picture-item" class="sidebar-item">
+                            <label id="profile-picture-input-label" class="btn left" for="profile-picture-input">Change Profile Picture</label>
+                            <input id="profile-picture-input" type="file" style="display:none">
+                        </div>
+                    
+                    <div id="invite-code-item" class="sidebar-item">
+                        <button id="new-invite-button" class="btn left">New Invite</button>
+                        <div id="invite-code-subitem" style="display:none">
+                            <input id="invite-code" placeholder="Loading..."></input>
+                            <button id="invite-code-close-button" class="btn right">Close</button>
+                        </div>
+                    </div>
+                    <div id="add-channel-item" class="sidebar-item">
+                        <button id="add-channel-button" class="btn left">Add Channel</button>
+                        <div id="add-channel-subitem" style="display:none">
+                            <input id="channel-name" placeholder="New channel name"></input>
+                            <button id="add-channel-add-button" class="btn right">Add</button>
+                        </div>
+                    </div>
+                    <div id="delete-channel-item" class="sidebar-item">
+                        <button id="delete-channel-button" class="btn left">Delete Channel</button>
+                        <div id="delete-channel-subitem" style="display:none">
+                            <select id="delete-channel-name" class="dropdown"></select>
+                            <button id="delete-channel-delete-button" class="btn right">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="sidebar-items">
                 <div id="users-header" class="sidebar-item-header"><h2>Users</h2><h2>☰</h2></div>
                 <div id="user-list"></div>

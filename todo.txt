@@ -6,3 +6,4 @@ Probably allow users to upload then link to files with a tag in their chat or so
 Maybe auto send a message with such a tag when a file gets uploaded. 
 Add specific file viewer + copy file links, public or private settings etc.
 Automatic NGINX setup for hosting on an actual server (user examia code as reference) etc.
+delete channel option lol

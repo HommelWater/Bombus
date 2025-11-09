@@ -160,7 +160,7 @@ body {
 	color: var(--color-text);
 }
 
-#add-channel-item{
+#add-channel-item, #delete-channel-item, #invite-code-item{
     display:flex;
     flex-direction: column;
 }
@@ -182,7 +182,7 @@ h2 {
 	margin:3px;
 }
 
-#channel-name{
+#channel-name, #delete-channel-name, #invite-code{
 	width:100%; 
 	margin-right:5px;
 }

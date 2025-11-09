@@ -165,6 +165,28 @@ function toggleCreateChannelDiv(){
     }
 }
 
+function toggleDeleteChannelDiv(){
+    const button = document.getElementById("delete-channel-button");
+    const subitem = document.getElementById("delete-channel-subitem");
+    if (!isVisible(subitem)){
+        const select = document.getElementById('delete-channel-name');
+        select.innerHTML = "";
+        for (const [id, channel] of Object.entries(state.channels)) {
+            const opt = document.createElement("option");
+            opt.value = id;
+            opt.textContent = channel.name;
+            select.appendChild(opt);
+        }
+        subitem.style.display = "flex";
+        button.style.display = "none";
+    } else {
+        const channel_id = document.getElementById("delete-channel-name").value;
+        socket.send(JSON.stringify({"type":"delete_channel", "data":{"channel_id":channel_id}}));
+        subitem.style.display = "none";
+        button.style.display = "block";
+    }
+}
+
 function toggleRenameUserDiv(e, user_id){
     e.stopPropagation();
     const button = document.getElementById("rename-user");
@@ -288,16 +310,20 @@ function toggleUserSettings(user_id){
 
     //Add the settings for the clicked user.
     if(selfUser.admin && !user.admin){
+        const banText = user.banned ? 'Unban' : 'Ban';
+        const restrictText = user.restricted ? 'Unrestrict' : 'Restrict';
+        const adminText = 'Make Admin';
+        
         const settingsHTML = `
             <div class="user-settings">
-                <div id="ban-user" class="user-setting btn right">Ban</div>
-                <div id="restrict-user" class="user-setting btn right">Restrict</div>
-                <div id="admin-user" class="user-setting btn right">Make Admin</div>
+                <div id="ban-user" class="user-setting btn right">${banText}</div>
+                <div id="restrict-user" class="user-setting btn right">${restrictText}</div>
+                <div id="admin-user" class="user-setting btn right">${adminText}</div>
                 <div id="rename-user" class="user-setting btn right">Rename</div>
                 <div id="rename-user-subitem" style="display:none;margin:5px">
-                        <input id="rename-username" placeholder="New username..."></input>
-		                <button id="rename-user-button" class="btn right">Set</button>
-                    </div>
+                    <input id="rename-username" placeholder="New username...">
+                    <button id="rename-user-button" class="btn right">Set</button>
+                </div>
                 <div class="user-setting btn right change-pfp-user">
                     <label id="profile-picture-user-label" class="right" for="profile-picture-user">Change Profile Picture</label>
                     <input id="profile-picture-user" type="file" style="display:none">
@@ -547,6 +573,8 @@ function load(){
     socket.addEventListener('message', message);
     document.getElementById("add-channel-button").addEventListener('click', toggleCreateChannelDiv);
     document.getElementById("add-channel-add-button").addEventListener("click", toggleCreateChannelDiv);
+    document.getElementById("delete-channel-button").addEventListener('click', toggleDeleteChannelDiv);
+    document.getElementById("delete-channel-delete-button").addEventListener("click", toggleDeleteChannelDiv);
     document.getElementById('send-button').addEventListener('click', sendPost);
     document.getElementById('search-button').addEventListener('click', search);
     document.getElementById("user-input").addEventListener("keydown", handle_input_key);
@@ -557,7 +585,7 @@ function load(){
     document.getElementById("settings-header").addEventListener('click', ()=>{toggleDiv('settings-content')})
     document.getElementById("users-header").addEventListener('click', ()=>{toggleDiv('user-list')})
     document.getElementById("channels-header").addEventListener('click', ()=>{toggleDiv('channels')})
-    document.getElementById("files-inpu").addEventListener('change', uploadFiles);
+    document.getElementById("files-input").addEventListener('change', uploadFiles);
 
     const chatWindow = document.getElementById("chat-window");
     chatWindow.addEventListener('scroll', () => {

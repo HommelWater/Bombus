@@ -27,6 +27,24 @@ async def create_channel(sender_user_id, name):
     
     await broadcast({"type":"channels", "data":{"channels":channels}})
 
+async def delete_channel(sender_user_id, name): #  Maybe switch this so that it just hides it and doesn't permanently delete it lol :')
+    user = await database.get_user(sender_user_id)
+    if not user or not user["admin"]:
+        await send(sender_user_id, {"type":"failure", "data":{"notification":"You do not have permission to create a new channel."}})
+        return
+
+    success = await database.delete_channel(name)
+    if not success:
+        await send(sender_user_id, {"type":"failure", "data":{"notification":"Could not delete channel."}})
+        return
+    
+    channels = await database.get_channels()
+    if not channels:
+        await send(sender_user_id, {"type":"failure", "data":{"notification":"Could not send updated channels."}})
+        return
+    
+    await broadcast({"type":"channels", "data":{"channels":channels}})
+
 async def get_posts(sender_user_id, channel_id=None, from_id=None, direction=None, query=None):
     #TODO: check if user has permissions for this channel, filter out channels only where the user has permission for.
     posts = await database.get_posts(channel_id, from_id, direction, query)
