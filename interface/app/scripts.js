@@ -568,7 +568,7 @@ function open(){
 }
 
 function load(){
-    socket = new WebSocket(`${window.location.origin}/ws`);
+    socket = new WebSocket(`${window.location.origin.replace(/^http/, 'wss')}/wss`);
     socket.addEventListener('open', open);
     socket.addEventListener('message', message);
     document.getElementById("add-channel-button").addEventListener('click', toggleCreateChannelDiv);
