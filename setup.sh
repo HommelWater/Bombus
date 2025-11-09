@@ -99,7 +99,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
 
     # WebSocket location
-    location /ws/ {
+    location /ws {
         proxy_pass http://127.0.0.1:${PORT}/ws;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
