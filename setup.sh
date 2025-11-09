@@ -76,6 +76,7 @@ SITE_FILE="/etc/nginx/sites-available/${SERVICE_NAME}"
 sudo tee "$SITE_FILE" >/dev/null <<EOF
 server {
     listen 80;
+    listen [::]:80;
     server_name ${DOMAIN};
 
     # Certbot webroot (must be public for verification)
@@ -83,12 +84,35 @@ server {
         root /var/www/certbot;
     }
 
+    # Redirect all other traffic to HTTPS
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name ${DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    # WebSocket location
+    location /ws/ {
+        proxy_pass http://127.0.0.1:${PORT}/ws/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+    }
+
+    # Normal HTTP traffic
     location / {
         proxy_pass http://127.0.0.1:${PORT};
         include /etc/nginx/proxy_params;
     }
 }
-
 EOF
 
 sudo ln -sf "$SITE_FILE" /etc/nginx/sites-enabled/
