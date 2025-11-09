@@ -1,18 +1,22 @@
 import asyncio
-connections = {}
+from collections import defaultdict
+
+connections = defaultdict(list)
 state_lock = asyncio.Lock()
 
 async def broadcast(json):
     async with state_lock:
         for c in list(connections.values()):
-            await c.send_json(json)
+            for v in c:
+                await v.send_json(json)
 
 async def send(user_id, json):
     async with state_lock:
-        socket = connections.get(user_id, None)
-        if not socket:
+        sockets = connections.get(user_id, None)
+        if not sockets:
             print(f"User ID {user_id} is not connected! Could not broadcast to user.")
-        await socket.send_json(json)
+        for s in sockets:
+            await s.send_json(json)
     await broadcast({"type":"activity", "data":{"user_id":user_id}})
 
 """

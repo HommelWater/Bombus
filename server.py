@@ -85,7 +85,7 @@ async def endpoint(websocket: WebSocket):
         return
     
     async with networking.state_lock:
-        networking.connections[user_id] = websocket
+        networking.connections[user_id].append(websocket)
 
 
     await channels.get_channels(user_id)
@@ -115,7 +115,8 @@ async def endpoint(websocket: WebSocket):
             await safe_call(handler_func, handler_data)
     except WebSocketDisconnect:
         async with networking.state_lock:
-            del networking.connections[user_id]
+            networking.connections[user_id].remove(websocket)
+            print(networking.connections)
         await voice.disconnect(user_id)
     except KeyError as e:
         logging.error(f"Missing expected key in WebSocket data: {e}")
