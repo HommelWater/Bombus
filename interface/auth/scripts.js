@@ -47,5 +47,5 @@ function generateTOTPQRCode(secret, issuer, accountName) {
 		colorLight : "#ffffff",
 		correctLevel : QRCode.CorrectLevel.H
 	});
-    document.getElementById('qrcode-label').innerHTML = "Scan the QR code with your authenticator app and use the TOTP code to log in.";
+    document.getElementById('qrcode-label').innerHTML = `Scan the QR code with your authenticator app and use the TOTP code to log in.`;
 }

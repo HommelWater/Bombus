@@ -7,6 +7,9 @@ async def signup(websocket, username, key):
     if username == "admin":
         totp_secret = pyotp.random_base32()
         user = await database.create_user(username, totp_secret, 1)
+        if not user:
+            await websocket.send_json({"type":"failure", "data":{"notification":"Admin account already exists."}})
+            return
         await database.update_user_status(user["id"], admin=True)
         await websocket.send_json({"type":"signup", "data":{"totp_secret":totp_secret}})
         return

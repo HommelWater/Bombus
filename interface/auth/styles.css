@@ -31,7 +31,7 @@ body {
 	gap: 10px;
 	align-items: stretch;
 	margin-top: 0;
-	flex: none;
+	flex-direction: column;
 	padding-top: 8px;
 	border-top: 1px solid var(--color-border);
 	background: transparent;
@@ -45,7 +45,6 @@ body {
 	font-weight: 600;
 	background: var(--color-button);
 	transition: transform .12s ease, opacity .12s ease, background .12s ease;
-	align-self: flex-end;
 	border-radius: 0px;
 	margin-bottom: auto;
 	margin-top: auto;
