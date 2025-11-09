@@ -31,7 +31,7 @@ function open(){
 }
 
 function load(){
-    socket = new WebSocket("ws://localhost:8000/ws");
+    socket = new WebSocket(`${window.location.origin.replace(/^http/, 'ws')}/ws`);
     socket.addEventListener('open', open);
     socket.addEventListener('message', message);
     document.getElementById('login-button').addEventListener('click', login);
