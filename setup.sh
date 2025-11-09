@@ -94,8 +94,6 @@ EOF
 sudo ln -sf "$SITE_FILE" /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 
-sudo nginx -t && sudo systemctl reload nginx || die "Nginx config invalid"
-
 # Certificate (only if none exists)
 # ------------------------------------------------------------------
 CERT_PATH="/etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
@@ -114,6 +112,8 @@ if ! grep -q "listen 443 ssl" "$SITE_FILE"; then
     log "Enabling HTTPS redirect"
     sudo certbot --nginx -d "$DOMAIN" --non-interactive --redirect
 fi
+
+sudo nginx -t && sudo systemctl reload nginx || die "Nginx config invalid"
 
 # ------------------------------------------------------------------
 log "Done – your app is live at https://${DOMAIN}/"
