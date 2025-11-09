@@ -2,3 +2,5 @@ rewrite this server in C (its just a simple crud backend, but easier to get into
 Running a private STUN/TURN server could be nice privacy wise, wonder if I could add voice processing/filters on the STUN/TURN server.... 
 Make it easier to access the database as a user. It needs to filter out sensitive info and return a DB file based on the users permissions.
 Permissions for users per channel is probably a good idea to add after the rewrite.
+let users have multiple simultanious connections.
+add better indexing in the DB.
