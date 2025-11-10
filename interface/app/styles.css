@@ -332,9 +332,6 @@ h2 {
 	body, html{
 		overscroll-behavior: initial;
 	}
-	#chat-header-search{
-		margin-right:40px;
-	}
 	#sidebar-r {
 		order: -1; /* Move right sidebar to the top */
 		width: 100%; /* Full width when stacked */
@@ -356,6 +353,9 @@ h2 {
 	}
 	.post-username{
 		min-width: 0px;
+	}
+	.theme-toggle{
+		display:none;
 	}
 }
 
