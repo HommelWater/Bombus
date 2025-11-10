@@ -177,7 +177,7 @@ h2 {
 	margin-bottom: 0px;
 }
 
-#add-channel-subitem{
+.subitem{
 	display:flex;
 	margin:3px;
 }
