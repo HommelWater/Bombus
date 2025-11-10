@@ -215,7 +215,7 @@ async def create_invite_code(cursor, code, inviter_id, uses):
 
 @async_with_db()
 async def get_users(cursor):
-    await cursor.execute("SELECT * FROM users")
+    await cursor.execute("SELECT * FROM users WHERE verified = 1")
     rows = await cursor.fetchall()
     users = [dict(row) for row in rows]
     for u in users:
