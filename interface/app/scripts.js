@@ -31,7 +31,7 @@ function handle_input_key(e) {
 
         let el = e.target;
         console.log(el)
-        while (el && el !== document.body) {
+        while ((e.key === "Enter" || e.code === "Enter") && !e.shiftKey) {
             const button = el.querySelector(
                 "#send-button, #search-button, #add-channel-add-button, #rename-user-button"
             );
