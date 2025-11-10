@@ -351,6 +351,9 @@ h2 {
 	.sidebar-items{
 		margin:0
 	}
+	.post-date{
+		display:none;
+	}
 }
 
 .sidebar-item-header{
