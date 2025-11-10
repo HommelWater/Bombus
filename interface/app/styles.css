@@ -46,6 +46,7 @@ body {
 	overflow-y: auto;
 	min-height: 0;
 	color: var(--color-text);
+	overscroll-behavior: contain;
 }
 
 #message-box{
@@ -67,7 +68,6 @@ body {
 	max-height: 200px;
 	box-sizing: border-box;
 	resize: none; 
-	overflow-y: hidden;
 	font-family: inherit;
 	font-size: 14px;
 	line-height: 1.4em;
@@ -141,9 +141,6 @@ body {
 #search-button{
     background:none;
     border:none;
-}
-#chat-window{
-    color: var(--color-text);
 }
 
 #send-button{

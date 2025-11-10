@@ -19,7 +19,7 @@ input, textarea, select, button {
 }
 
 html, body {
-  overscroll-behavior: none;
+    overscroll-behavior: none;
 }
 
 h1 { font-size: 2rem; }
