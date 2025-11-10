@@ -621,6 +621,11 @@ function load(){
     document.getElementById("users-header").addEventListener('click', ()=>{toggleDiv('user-list')})
     document.getElementById("channels-header").addEventListener('click', ()=>{toggleDiv('channels')})
     document.getElementById("files-input").addEventListener('change', uploadFiles);
+    const textarea = document.querySelector('#message-box textarea');
+    textarea.addEventListener('input', function () {
+        this.style.height = '1.5rem';
+        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
 
     const chatWindow = document.getElementById("chat-window");
     chatWindow.addEventListener('scroll', () => {
