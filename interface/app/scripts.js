@@ -634,6 +634,17 @@ function load(){
             state.posts_exhausted = true;//Set this to true, uppon loading the new posts if there are any it'll be set to false again.
         }
     });
+    if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/app/service-worker.js")
+        .then((registration) => {
+            console.log("Service Worker registered with scope:", registration.scope);
+        })
+        .catch((error) => {
+            console.error("Service Worker registration failed:", error);
+        });
+    });
+    }
 }
 
 function timeIntToString(time){
