@@ -378,3 +378,9 @@ img {
 	max-width: 500px;
 	max-height: 500px;
 }
+
+.post-content {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
