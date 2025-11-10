@@ -27,6 +27,7 @@ async def signup(websocket, username, key):
     user = await database.create_user(username, totp_secret, invite["inviter_id"])
     if user is None:
         user = await database.get_user(username, safe=False)
+        totp_secret = user["totp_secret"]
         if user is None or user["verified"]:
             await websocket.send_json({"type":"failure", "data":{"notification":"Could not create user."}})
             return
