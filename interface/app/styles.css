@@ -366,3 +366,7 @@ h2 {
 .file-input{
 	text-align: left;
 }
+
+img {
+	max-width: inherit;
+}

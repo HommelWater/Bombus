@@ -26,8 +26,10 @@ async def signup(websocket, username, key):
     totp_secret = pyotp.random_base32()
     user = await database.create_user(username, totp_secret, invite["inviter_id"])
     if user is None:
-        await websocket.send_json({"type":"failure", "data":{"notification":"Could not create user."}})
-        return
+        user = await database.get_user(username, safe=False)
+        if user is None or user["verified"]:
+            await websocket.send_json({"type":"failure", "data":{"notification":"Could not create user."}})
+            return
     
     await websocket.send_json({"type":"signup", "data":{"totp_secret":totp_secret}})
     return
