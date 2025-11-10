@@ -354,6 +354,9 @@ h2 {
 	.post-date{
 		display:none;
 	}
+	.post-username{
+		min-width: 0px;
+	}
 }
 
 .sidebar-item-header{
