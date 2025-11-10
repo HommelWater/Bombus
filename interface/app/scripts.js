@@ -613,6 +613,7 @@ function load(){
     document.getElementById('send-button').addEventListener('click', sendPost);
     document.getElementById('search-button').addEventListener('click', search);
     document.addEventListener("keydown", handle_input_key);
+    document.addEventListener("input", handle_input_key);
     document.getElementById("new-invite-button").addEventListener('click', toggleInviteCodeDiv);
     document.getElementById("invite-code-close-button").addEventListener('click', toggleInviteCodeDiv);
     document.getElementById("profile-picture-input").addEventListener('change', (e)=>changeProfilePicture(e, state.self_user));
