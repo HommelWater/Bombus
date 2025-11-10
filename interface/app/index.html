@@ -39,7 +39,11 @@
                     <input type="file" id="files-input" multiple style="display:none">
                     <div id="upload-progress"></div>
                 </div>
-                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <textarea id="user-input" placeholder="Type your message here..."
+                    inputmode="text" 
+	                autocomplete="off" 
+	                autocorrect="on">
+                </textarea>
                 <button id="send-button" class="btn up">Send</button>
             </div>
         </div>
