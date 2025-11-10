@@ -160,7 +160,7 @@ body {
 	color: var(--color-text);
 }
 
-#add-channel-item, #delete-channel-item, #invite-code-item{
+#add-channel-item, #delete-channel-item, #invite-code-item, #theme-toggle-item{
     display:flex;
     flex-direction: column;
 }

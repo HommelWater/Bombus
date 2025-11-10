@@ -1,9 +1,7 @@
 window.addEventListener("pageshow", ()=>toggleTheme(0));
-//document.addEventListener('DOMContentLoaded', init_themes);
+document.addEventListener('DOMContentLoaded', init_themes);
 let themes = []
 
-init_themes()
-toggleTheme(0)
 function toggleTheme(increment) {
     const currentIndex = get_theme_from_cookie();
     const newIndex = (currentIndex + increment) % themes.length;
@@ -46,10 +44,9 @@ function getThemesFromCSS() {
 
 function init_themes(){
     themes = getThemesFromCSS();
-    const btn = document.createElement("button");
-    btn.id = "theme-toggle";
-    btn.className = "theme-toggle";
-    btn.textContent = "🎨";
-    document.documentElement.appendChild(btn);
-    btn.addEventListener('click', ()=>toggleTheme(1));
+    const btn = document.getElementById("theme-toggle-button");
+    if(btn){
+        btn.addEventListener('click', ()=>toggleTheme(1));
+    }
+    toggleTheme(0)
 }

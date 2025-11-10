@@ -118,27 +118,3 @@ html.froggy {
   --color-text-alt: var(--color-text);
 }
 */
-
-.theme-toggle {
-  position: fixed;
-  top: 2px;
-  right: 2px;
-  z-index: 9999; /* always on top */
-  background: var(--color-button);
-  border: none;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: background 0.3s, transform 0.2s;
-  -webkit-appearance: none; 
-  padding:0;
-  line-height: 1;
-}
-
-.theme-toggle:hover {
-  background: var(--color-button-h);
-  transform: scale(1.1);
-}
