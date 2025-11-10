@@ -31,7 +31,7 @@ function handle_input_key(e) {
 
         let el = e.target;
         console.log(el)
-        while ((e.key === "Enter" || e.code === "Enter") && !e.shiftKey) {
+        while ((e.key === "Enter" || e.keyCode === 13) && !e.shiftKey) {
             const button = el.querySelector(
                 "#send-button, #search-button, #add-channel-add-button, #rename-user-button"
             );
@@ -613,7 +613,6 @@ function load(){
     document.getElementById('send-button').addEventListener('click', sendPost);
     document.getElementById('search-button').addEventListener('click', search);
     document.addEventListener("keydown", handle_input_key);
-    document.addEventListener("input", handle_input_key);
     document.getElementById("new-invite-button").addEventListener('click', toggleInviteCodeDiv);
     document.getElementById("invite-code-close-button").addEventListener('click', toggleInviteCodeDiv);
     document.getElementById("profile-picture-input").addEventListener('change', (e)=>changeProfilePicture(e, state.self_user));
