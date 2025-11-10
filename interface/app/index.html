@@ -32,12 +32,13 @@
                 </div>
             </div>
             <div id="chat-window"></div>
-            <div class="file-input">
-                <label for="files-input">📁 Add files...</label>
-                <input type="file" id="files-input" multiple style="display:none">
-                <div id="upload-progress"></div>
-            </div>
+            
             <div id="message-box">
+                <div class="file-input">
+                    <label id="files-input-label" for="files-input">📁</label>
+                    <input type="file" id="files-input" multiple style="display:none">
+                    <div id="upload-progress"></div>
+                </div>
                 <textarea id="user-input" placeholder="Type your message here..."></textarea>
                 <button id="send-button" class="btn up">Send</button>
             </div>
