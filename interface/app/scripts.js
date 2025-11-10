@@ -24,12 +24,24 @@ function isVisible(elem) {
     return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
 }
 
-//simple for now, should change based on where the user is typing eg search bar
+//Is this solid enough? Am I gonna accidentally get people to add new channels when typing in the wrong box? :')
 function handle_input_key(e) {
-	if (e.key === "Enter" && !e.shiftKey) {
-		e.preventDefault();
-		document.getElementById("send-button").click();
-	}
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+
+        let el = e.target;
+        console.log(el)
+        while (el && el !== document.body) {
+            const button = el.querySelector(
+                "#send-button, #search-button, #add-channel-add-button, #rename-user-button"
+            );
+            if (button) {
+                button.click();
+                return;
+            }
+            el = el.parentElement;
+        }
+    }
 }
 
 function toggleSidebarDiv(){
@@ -600,7 +612,7 @@ function load(){
     document.getElementById("delete-channel-delete-button").addEventListener("click", toggleDeleteChannelDiv);
     document.getElementById('send-button').addEventListener('click', sendPost);
     document.getElementById('search-button').addEventListener('click', search);
-    document.getElementById("user-input").addEventListener("keydown", handle_input_key);
+    document.addEventListener("keydown", handle_input_key);
     document.getElementById("new-invite-button").addEventListener('click', toggleInviteCodeDiv);
     document.getElementById("invite-code-close-button").addEventListener('click', toggleInviteCodeDiv);
     document.getElementById("profile-picture-input").addEventListener('change', (e)=>changeProfilePicture(e, state.self_user));
