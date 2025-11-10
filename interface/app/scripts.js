@@ -445,34 +445,57 @@ function addPosts(posts) {
         const tooOldFromNext = !nextPost || Math.abs(nextTime - currentTime) > 30;
         
         //Add new post to dom
+        const newPost = document.createElement('div');
+        newPost.className = 'post-content';
+        newPost.id = `post-${post.id}`;
+        newPost.dataset.author = post.user_id;
+        newPost.dataset.created = post.created_at;
+        newPost.textContent = post.content;
+
         if (fromPrevUser && !tooOldFromPrev){
-            const html = `<div class="post-content" id="post-${post.id}" data-author="${post.user_id}" data-created="${post.created_at}">${post.content}</div>`;
-            prevPost.insertAdjacentHTML('afterend', html);
+            prevPost.insertAdjacentElement('afterend', newPost);
             continue;
         }
         if (fromNextUser && !tooOldFromNext){
-            const html = `<div class="post-content" id="post-${post.id}" data-author="${post.user_id}" data-created="${post.created_at}">${post.content}</div>`;
-            nextPost.insertAdjacentHTML('beforebegin', html);
+            nextPost.insertAdjacentElement('beforebegin', newPost);
             continue;
         }
 
-        const html = `
-            <div class="chat-post" data-channel="${post.channel}">
-                <div class="post-username">
-                    <img class="post-user-icon" src="/images/users/${user.id}.webp">
-                    ${state.users[user.id].username}
-                    <div class="post-date">
-                        ${timeIntToString(post.created_at)}
-                    </div>
-                </div>
-                <div class="post-content-group">
-                    <div class="post-content" id="post-${post.id}" data-author="${post.user_id}" data-created="${post.created_at}">${post.content}</div>
-                </div>
-            </div>`
-        if (prevPost){
-            prevPost.parentNode.parentNode.insertAdjacentHTML('afterend', html);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'chat-post';
+        wrapper.dataset.channel = post.channel;
+
+        const usernameDiv = document.createElement('div');
+        usernameDiv.className = 'post-username';
+
+        const userImg = document.createElement('img');
+        userImg.className = 'post-user-icon';
+        userImg.src = `/images/users/${post.user_id}.webp`;
+
+        const userName = document.createTextNode(state.users[post.user_id]?.username || 'Unknown');
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'post-date';
+        dateDiv.textContent = timeIntToString(post.created_at);
+
+        usernameDiv.append(userImg, userName, dateDiv);
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'post-content-group';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'post-content';
+        contentDiv.id = `post-${post.id}`;
+        contentDiv.dataset.author = post.user_id;
+        contentDiv.dataset.created = post.created_at;
+        contentDiv.textContent = post.content;
+
+        groupDiv.append(contentDiv);
+        wrapper.append(usernameDiv, groupDiv);
+        if (prevPost) {
+            prevPost.parentNode.parentNode.insertAdjacentElement('afterend', wrapper);
         } else {
-            container.insertAdjacentHTML('afterbegin', html)
+            container.insertBefore(wrapper, container.firstChild);
         }
     }
     //Set scrollheight to bottom to display new messages.
