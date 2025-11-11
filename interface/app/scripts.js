@@ -602,10 +602,18 @@ function open(){
     socket.send(JSON.stringify({"type":"authenticate", "data":{"key":session}}))
 }
 
+function connectWS(){
+    if(!document.hidden && (!socket || (socket.readyState !== WebSocket.OPEN))){
+        if (socket) socket.close();
+        socket = new WebSocket(`${window.location.origin.replace(/^http/, 'ws')}/ws`);
+        socket.addEventListener('open', open);
+        socket.addEventListener('message', message);
+    }
+}
+
 function load(){
-    socket = new WebSocket(`${window.location.origin.replace(/^http/, 'ws')}/ws`);
-    socket.addEventListener('open', open);
-    socket.addEventListener('message', message);
+    connectWS();
+    document.addEventListener('visibilitychange', connectWS);
     document.getElementById("add-channel-button").addEventListener('click', toggleCreateChannelDiv);
     document.getElementById("add-channel-add-button").addEventListener("click", toggleCreateChannelDiv);
     document.getElementById("delete-channel-button").addEventListener('click', toggleDeleteChannelDiv);
