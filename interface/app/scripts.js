@@ -30,7 +30,6 @@ function handle_input_key(e) {
         e.preventDefault();
 
         let el = e.target;
-        console.log(el)
         while ((e.key === "Enter" || e.code === "Enter") && !e.shiftKey) {
             const button = el.querySelector(
                 "#send-button, #search-button, #add-channel-add-button, #rename-user-button"
@@ -607,7 +606,14 @@ function connectWS(){
         if (socket) socket.close();
         socket = new WebSocket(`${window.location.origin.replace(/^http/, 'ws')}/ws`);
         socket.addEventListener('open', open);
+        socket.addEventListener('close', close)
         socket.addEventListener('message', message);
+    }
+}
+
+function close(){
+    if (!document.hidden) {
+        setTimeout(connectWS, 1000);
     }
 }
 
