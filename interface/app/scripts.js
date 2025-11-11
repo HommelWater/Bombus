@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', load);
 const userVolumePrefs = JSON.parse(localStorage.getItem("userVolumePrefs") || "{}");
 let masterVolume = parseFloat(localStorage.getItem("masterVolume") || "1.0");
 let socket;
+let registration;
 let localStream;
 const state = {
     self_user: null,
@@ -573,7 +574,7 @@ async function message(e){
     if (type == "vc_channel_users"){
         state.vc_channel_users = data.channel_users;
         setVCUsers();
-    }
+    } else
     if (type == "connect"){
         await vc_connect(data.channel_id, data.user_id);
         setVCUsers();
@@ -590,6 +591,9 @@ async function message(e){
     } else 
     if (type == "candidate"){
         candidate(data.sender_user_id, data.data)
+    } else 
+    if (type == "vapid_public_key"){
+        await subscribeToPush(data.key);
     }
 }
 
@@ -646,17 +650,29 @@ function load(){
             state.posts_exhausted = true;//Set this to true, uppon loading the new posts if there are any it'll be set to false again.
         }
     });
-    if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/app/service-worker.js")
-        .then((registration) => {
-            console.log("Service Worker registered with scope:", registration.scope);
-        })
-        .catch((error) => {
-            console.error("Service Worker registration failed:", error);
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+        window.addEventListener("load", () => {
+            registration = navigator.serviceWorker.register("/app/service-worker.js");
         });
-    });
+    } else {
+        console.warn("Push notifications are not supported in this browser.");
+    }   
+}
+
+async function subscribeToPush(vapid_public_key) {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+        console.warn("Permission for notifications was denied");
+        return;
     }
+    if (!registration) return;
+
+    const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapid_public_key),
+    });
+
+    socket.send({"type": "push_subscribe", "data": {"subscription":subscription},});
 }
 
 function timeIntToString(time){

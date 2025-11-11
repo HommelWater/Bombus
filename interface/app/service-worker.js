@@ -39,3 +39,41 @@ self.addEventListener("fetch", (event) => {
       .then((response) => response || fetch(event.request))
   );
 });
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  const data = event.data.json();
+
+  const title = data.title || "New Message";
+  const options = {
+    body: data.body || "You have a new notification",
+    icon: "/icons/icon-192x192.png",
+    badge: "/icons/badge.png",
+    data: data, // can include URL or metadata
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url || "/";
+  event.waitUntil(
+    clients.matchAll({ type: "window" }).then((clientsArr) => {
+      const hadWindow = clientsArr.some((client) => {
+        if (client.url === urlToOpen && "focus" in client) {
+          client.focus();
+          return true;
+        }
+        return false;
+      });
+      if (!hadWindow && clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});

@@ -119,8 +119,10 @@ async def init_database():
 
 @async_with_db(fetchall=True)
 async def get_push_subscriptions(cursor, user_ids):
-    placeholders = ",".join(["?"] * len(user_ids))
-    query = f"SELECT subscription_json FROM push_subscriptions WHERE user_id IN ({placeholders})"
+    query = f"SELECT subscription_json FROM push_subscriptions"
+    if user_ids:
+        query += f"WHERE user_id IN ({placeholders})"
+        placeholders = ",".join(["?"] * len(user_ids))
     cursor.execute(query, user_ids)
 
 @async_with_db(commit=True)

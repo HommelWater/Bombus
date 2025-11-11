@@ -2,7 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import asyncio
-from functions import auth, channels, users, voice, files, networking, database
+from functions import auth, channels, users, voice, files, networking, database, push
 import inspect
 import logging
 
@@ -48,10 +48,14 @@ request_map = {
     "vc_offer":         voice.offer,
     "vc_answer":        voice.answer,
     "vc_candidate":     voice.candidate,
-    "vc_disconnect":    voice.disconnect,  
+    "vc_disconnect":    voice.disconnect,
+      
+    "push_subscribe":   push.subscribe,
+    "push_unsubscribe": push.unsubscribe,
 }
 
 from contextlib import asynccontextmanager
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_database()
@@ -92,8 +96,9 @@ async def endpoint(websocket: WebSocket):
     await users.get_users(user_id)
     await users.get_self(user_id)
     await voice.get_users(user_id)
+    await push.vapid_public_key(user_id)
     await networking.send(user_id, {"type":"session_login", "data":{"notification":"Successfully logged in."}})
-    
+
     try:
         while True:
             data = await websocket.receive_json()

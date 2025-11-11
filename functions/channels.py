@@ -1,5 +1,6 @@
 from . import database
 from .networking import broadcast, send
+from .push import send_notifications
 
 async def get_channels(sender_user_id):#TODO: add user_id based channel return
     channels = await database.get_channels()
@@ -66,3 +67,4 @@ async def send_post(sender_user_id, channel_id, content):
         return
     
     await broadcast({"type":"posts", "data":{"posts":[post]}})
+    await send_notifications(False, content)
