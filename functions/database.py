@@ -108,7 +108,7 @@ async def init_database():
                 endpoint TEXT UNIQUE NOT NULL,
                 subscription_json TEXT NOT NULL,
                 created_at INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             )
         ''')
         await conn.execute('''
