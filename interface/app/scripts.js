@@ -622,13 +622,6 @@ function close(){
 function load(){
     connectWS();
     document.addEventListener('visibilitychange', connectWS);
-    document.getElementById("notification-button").addEventListener('click', async ()=>{
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") {
-            console.warn("Permission for notifications was denied");
-            return;
-        }
-    })
     document.getElementById("add-channel-button").addEventListener('click', toggleCreateChannelDiv);
     document.getElementById("add-channel-add-button").addEventListener("click", toggleCreateChannelDiv);
     document.getElementById("delete-channel-button").addEventListener('click', toggleDeleteChannelDiv);
@@ -648,6 +641,13 @@ function load(){
     textarea.addEventListener('input', function () {
         this.style.height = '1.5rem';
         this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+    document.getElementById("notification-button").addEventListener('click', async ()=>{
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+            console.warn("Permission for notifications was denied");
+            return;
+        }
     });
 
     const chatWindow = document.getElementById("chat-window");
