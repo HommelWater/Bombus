@@ -602,7 +602,7 @@ function open(){
 }
 
 function connectWS(){
-    if(!document.hidden && (!socket || (socket.readyState !== WebSocket.OPEN))){
+    if((document.visibilityState === 'visible') && (!socket || (socket.readyState !== WebSocket.OPEN))){
         if (socket) socket.close();
         socket = new WebSocket(`${window.location.origin.replace(/^http/, 'ws')}/ws`);
         socket.addEventListener('open', open);
@@ -612,14 +612,14 @@ function connectWS(){
 }
 
 function close(){
-    if (!document.hidden) {
+    if (document.visibilityState === 'visible') {
         setTimeout(connectWS, 1000);
     }
 }
 
 function load(){
     connectWS();
-    document.addEventListener('pageshow', connectWS);
+    document.addEventListener('visibilitychange', connectWS);
     document.getElementById("add-channel-button").addEventListener('click', toggleCreateChannelDiv);
     document.getElementById("add-channel-add-button").addEventListener("click", toggleCreateChannelDiv);
     document.getElementById("delete-channel-button").addEventListener('click', toggleDeleteChannelDiv);
