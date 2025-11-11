@@ -619,7 +619,7 @@ function close(){
 
 function load(){
     connectWS();
-    document.addEventListener('visibilitychange', connectWS);
+    document.addEventListener('pageshow', connectWS);
     document.getElementById("add-channel-button").addEventListener('click', toggleCreateChannelDiv);
     document.getElementById("add-channel-add-button").addEventListener("click", toggleCreateChannelDiv);
     document.getElementById("delete-channel-button").addEventListener('click', toggleDeleteChannelDiv);
