@@ -9,7 +9,6 @@ body {
 	flex-direction: column;
 	width: 100dvw;
 	height: 100dvh;
-	padding-bottom: env(safe-area-inset-bottom);
 }
 
 .container {
@@ -332,6 +331,7 @@ h2 {
 		padding:0px;
 		overflow-y:auto;
 		min-height: 500px;
+		padding-bottom: env(safe-area-inset-bottom);
 	}
 
 	body, html{
