@@ -334,6 +334,10 @@ h2 {
 		padding-bottom: env(safe-area-inset-bottom);
 	}
 
+	.card:focus-within {
+		padding-bottom: 0;
+	}
+
 	body, html{
 		overscroll-behavior: initial;
 	}
