@@ -651,8 +651,8 @@ function load(){
         }
     });
     if ("serviceWorker" in navigator && "PushManager" in window) {
-        window.addEventListener("load", () => {
-            registration = navigator.serviceWorker.register("/app/service-worker.js");
+        window.addEventListener("load", async () => {
+            registration = await navigator.serviceWorker.register("/app/service-worker.js");
         });
     } else {
         console.warn("Push notifications are not supported in this browser.");
@@ -672,7 +672,10 @@ async function subscribeToPush(vapid_public_key) {
         applicationServerKey: urlBase64ToUint8Array(vapid_public_key),
     });
 
-    socket.send({"type": "push_subscribe", "data": {"subscription":subscription},});
+    socket.send(JSON.stringify({
+        type: "push_subscribe",
+        data: { subscription }
+    }));
 }
 
 function timeIntToString(time){
