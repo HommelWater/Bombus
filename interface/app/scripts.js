@@ -568,7 +568,6 @@ async function message(e){
                 document.getElementById(`user-${data.user_id}`).querySelector(`.user-activity`).innerHTML = (user.last_activity && 
                                 (Date.now() - state.users[data.user_id].last_activity < 5 * 60 * 1000)) ? "🟢" : "🔴"
             }, 5 * 60 * 1000);
-            //TODO: set a timer to set it to orange/red after some time based on the last_activity value.
         }
     } else 
     if (type == "vc_channel_users"){
@@ -576,7 +575,6 @@ async function message(e){
         setVCUsers();
     }
     if (type == "connect"){
-        //Create offer for all users connected to the same voice channel.
         await vc_connect(data.channel_id, data.user_id);
         setVCUsers();
     } else 

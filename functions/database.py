@@ -113,7 +113,7 @@ async def init_database():
         ''')
         await conn.execute('''
             CREATE INDEX IF NOT EXISTS idx_posts_channel_created_at ON posts(channel, created_at DESC);
-        ''')
+        ''')# TODO: Add more, better indexes!
 
 # PUSH SUBSCRIPTIONS
 
@@ -139,8 +139,8 @@ async def add_push_subscription(cursor, user_id, subscription):
     return cursor.lastrowid
 
 @async_with_db(commit=True)
-async def remove_push_subscription(cursor, endpoint):
-    await cursor.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
+async def remove_push_subscription(cursor, user_id, endpoint):
+    await cursor.execute("DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?", (user_id, endpoint,))
     return cursor.lastrowid
 
 # FILES
