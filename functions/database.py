@@ -123,7 +123,7 @@ async def get_push_subscriptions(cursor, user_ids):
     if user_ids:
         query += f"WHERE user_id IN ({placeholders})"
         placeholders = ",".join(["?"] * len(user_ids))
-    cursor.execute(query, user_ids)
+    await cursor.execute(query, user_ids)
 
 @async_with_db(commit=True)
 async def add_push_subscription(cursor, user_id, subscription):
