@@ -38,7 +38,7 @@ fi
 
 source "$VENV_DIR/bin/activate"
 pip install -q -U pip setuptools wheel
-pip install -q fastapi uvicorn websockets pyotp pillow aiosqlite python-dotenv
+pip install -q fastapi uvicorn websockets pyotp pillow aiosqlite python-dotenv pywebpush
 
 # Environment file
 # ------------------------------------------------------------------

@@ -102,14 +102,52 @@ async def init_database():
             )
         ''')
         await conn.execute('''
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                endpoint TEXT UNIQUE NOT NULL,
+                subscription_json TEXT NOT NULL,
+                created_at INTEGER DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            )
+        ''')
+        await conn.execute('''
             CREATE INDEX IF NOT EXISTS idx_posts_channel_created_at ON posts(channel, created_at DESC);
         ''')
+
+# PUSH SUBSCRIPTIONS
+
+@async_with_db(fetchall=True)
+async def get_push_subscriptions(cursor, user_ids):
+    placeholders = ",".join(["?"] * len(user_ids))
+    query = f"SELECT subscription_json FROM push_subscriptions WHERE user_id IN ({placeholders})"
+    cursor.execute(query, user_ids)
+
+@async_with_db(commit=True)
+async def add_push_subscription(cursor, user_id, subscription):
+    endpoint = subscription.get("endpoint")
+    sub_json = subscription.get("subscription_json")
+
+    if not user_id or not endpoint or not sub_json:
+        return None
+
+    if not isinstance(sub_json, str):
+        import json
+        sub_json = json.dumps(sub_json)
+
+    await cursor.execute('INSERT INTO push_subscriptions (user_id, endpoint, subscription_json) VALUES (?, ?, ?)', (user_id, endpoint, sub_json))
+    return cursor.lastrowid
+
+@async_with_db(commit=True)
+async def remove_push_subscription(cursor, endpoint):
+    await cursor.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
+    return cursor.lastrowid
 
 # FILES
 
 @async_with_db(commit=True)
 async def store_file_metadata(cursor, name, size, hash):
-    await cursor.execute("INSERT INTO files (name, size, hash)", (name, size, hash,))
+    await cursor.execute("INSERT INTO files (name, size, hash) VALUES (?, ?, ?)", (name, size, hash,))
     return cursor.lastrowid
 
 @async_with_db(fetchone=True)

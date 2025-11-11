@@ -116,7 +116,6 @@ async def endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         async with networking.state_lock:
             networking.connections[user_id].remove(websocket)
-            print(networking.connections)
         await voice.disconnect(user_id)
     except KeyError as e:
         logging.error(f"Missing expected key in WebSocket data: {e}")
