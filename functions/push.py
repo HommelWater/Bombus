@@ -11,7 +11,7 @@ VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_SUB = os.getenv("VAPID_SUB")
 
 async def subscribe(sender_user_id, subscription):
-    success = database.add_push_subscription(sender_user_id, subscription)
+    success = await database.add_push_subscription(sender_user_id, subscription)
     if not success:
         await send(sender_user_id, {"type":"failure", "data":{"notification":"Couldn't add subscription."}})
         return
@@ -23,14 +23,14 @@ async def vapid_public_key(sender_user_id):
 async def unsubscribe(sender_user_id, subscription):
     success = False
     if subscription and subscription["endpoint"]:
-        success = database.remove_push_subscription(sender_user_id, subscription)
+        success = await database.remove_push_subscription(sender_user_id, subscription)
     if not success:
         await send(sender_user_id, {"type":"failure", "data":{"notification":"Couldn't add subscription."}})
         return
     await send(sender_user_id, {"type":"success", "data":{"notification":"Successfully subscribed to push notifications."}})
 
 async def send_notifications(user_ids, message):
-    subscriptions = database.get_push_subscriptions(user_ids)
+    subscriptions = await database.get_push_subscriptions(user_ids)
     if not subscriptions: return
     for sub in subscriptions:
         try:
@@ -44,5 +44,5 @@ async def send_notifications(user_ids, message):
         except WebPushException as ex:
             if ex.response and ex.response.status_code in [404, 410]:
                 if sub and sub["endpoint"]:
-                    database.remove_push_subscription(sub["endpoint"])
+                    await database.remove_push_subscription(sub["endpoint"])
             print(f"Push failed: {repr(ex)}")
