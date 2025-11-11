@@ -3,11 +3,18 @@ from pywebpush import webpush, WebPushException
 from .networking import send, broadcast
 from . import database
 from dotenv import load_dotenv
+import base64
 
 load_dotenv()
 
-VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")
-VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
+def convert_vapid_public_key_for_browser(vapid_pub_der_b64: str) -> str:
+    der_bytes = base64.b64decode(vapid_pub_der_b64)
+    raw_key_bytes = der_bytes[-65:]
+    urlsafe_b64 = base64.urlsafe_b64encode(raw_key_bytes).decode("utf-8").rstrip("=")
+    return urlsafe_b64
+
+VAPID_PUBLIC_KEY = convert_vapid_public_key_for_browser(os.getenv("VAPID_PUBLIC_KEY"))
+VAPID_PRIVATE_KEY = convert_vapid_public_key_for_browser(os.getenv("VAPID_PRIVATE_KEY"))
 VAPID_SUB = os.getenv("VAPID_SUB")
 
 async def subscribe(sender_user_id, subscription):
