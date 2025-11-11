@@ -665,7 +665,7 @@ async function subscribeToPush(vapid_public_key) {
         console.warn("Permission for notifications was denied");
         return;
     }
-    if (!registration) return;
+    if (!registration || registration.pushManager) return;
 
     const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
