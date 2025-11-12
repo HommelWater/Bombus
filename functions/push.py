@@ -41,7 +41,6 @@ async def send_notifications(user_ids, message):
     print(message)
     subscriptions = await database.get_push_subscriptions(user_ids)
     print(subscriptions)
-    subscriptions = [json.loads(sub) for sub in subscriptions]
     if not subscriptions: return
     for sub in subscriptions:
         try:
