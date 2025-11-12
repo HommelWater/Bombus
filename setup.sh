@@ -98,6 +98,10 @@ server {
     ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
 
+    location ~* \.(php|phtml|pl|py|cgi)$ {
+        return 444;
+    }
+
     # WebSocket location
     location /ws {
         proxy_pass http://127.0.0.1:${PORT}/ws;
