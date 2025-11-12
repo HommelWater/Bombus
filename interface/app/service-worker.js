@@ -41,16 +41,13 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  console.log(event.data)
   if (!event.data) return;
 
-  const data = event.data.json();
-
-  const title = data.title || "New Message";
+  const title = "New Message";
   const options = {
-    body: data.body || "You have a new notification",
+    body: data || "You have a new notification",
     icon: "/images/icons/192.png",
-    data: data, // can include URL or metadata
+    data: data, 
   };
 
   event.waitUntil(
@@ -61,7 +58,7 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || "/";
+  const urlToOpen = "/";
   event.waitUntil(
     clients.matchAll({ type: "window" }).then((clientsArr) => {
       const hadWindow = clientsArr.some((client) => {
