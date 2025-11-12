@@ -136,7 +136,7 @@ async def add_push_subscription(cursor, user_id, subscription):
         import json
         subscription = json.dumps(subscription)
 
-    await cursor.execute('INSERT INTO push_subscriptions (user_id, endpoint, subscription_json) VALUES (?, ?, ?)', (user_id, endpoint, sub_json))
+    await cursor.execute('INSERT INTO push_subscriptions (user_id, endpoint, subscription_json) VALUES (?, ?, ?)', (user_id, endpoint, subscription))
     return cursor.lastrowid
 
 @async_with_db(commit=True)
