@@ -48,8 +48,7 @@ self.addEventListener("push", (event) => {
   const title = data.title || "New Message";
   const options = {
     body: data.body || "You have a new notification",
-    icon: "/icons/icon-192x192.png",
-    badge: "/icons/badge.png",
+    icon: "/images/icons/192.png",
     data: data, // can include URL or metadata
   };
 
