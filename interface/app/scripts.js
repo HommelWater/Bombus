@@ -657,7 +657,7 @@ function load(){
             state.posts_exhausted = true;//Set this to true, uppon loading the new posts if there are any it'll be set to false again.
         }
     });
-    if ("serviceWorker" in navigator && "PushManager" in window) {
+    if ("serviceWorker" in navigator) {
         window.addEventListener("load", async () => {
             registration = await navigator.serviceWorker.register("/app/service-worker.js");
         });
