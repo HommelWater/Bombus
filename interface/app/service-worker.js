@@ -41,15 +41,13 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  console.log(event)
-  console.log(event.data)
-  if (!event.data) return;
+  const message = event.data.text();
 
   const title = "New Message";
   const options = {
-    body: data || "You have a new notification",
+    body: message || "You have a new notification",
     icon: "/images/icons/192.png",
-    data: data, 
+    data: message, 
   };
 
   event.waitUntil(
