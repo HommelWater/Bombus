@@ -43,6 +43,7 @@ async def send_notifications(user_ids, message):
     if not subscriptions: return
     for sub in subscriptions:
         try:
+            print(sub)
             parsed = urlparse(sub["endpoint"])
             aud = f"{parsed.scheme}://{parsed.netloc}"
             webpush(
