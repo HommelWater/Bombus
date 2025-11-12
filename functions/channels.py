@@ -65,6 +65,6 @@ async def send_post(sender_user_id, channel_id, content):
     if not post:
         await send(sender_user_id, {"type":"failure", "data":{"notification":"Could not retrieve created post."}})
         return
-    
+    print(content)
     await broadcast({"type":"posts", "data":{"posts":[post]}})
     await send_notifications([], content)
