@@ -30,10 +30,24 @@ function open(){
     if (session) location.href = "/";
 }
 
+function connectWS(){
+    if((document.visibilityState === 'visible') && (!socket || (socket.readyState !== WebSocket.OPEN))){
+        if (socket) socket.close();
+        socket = new WebSocket(`${window.location.origin.replace(/^http/, 'ws')}/ws`);
+        socket.addEventListener('open', open);
+        socket.addEventListener('close', close)
+        socket.addEventListener('message', message);
+    }
+}
+
+function close(){
+    if (document.visibilityState === 'visible') {
+        setTimeout(connectWS, 1000);
+    }
+}
+
 function load(){
-    socket = new WebSocket(`${window.location.origin.replace(/^http/, 'ws')}/ws`);
-    socket.addEventListener('open', open);
-    socket.addEventListener('message', message);
+    connectWS();
     document.getElementById('login-button').addEventListener('click', login);
 }
 
