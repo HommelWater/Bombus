@@ -38,6 +38,7 @@ async def unsubscribe(sender_user_id, subscription):
     await send(sender_user_id, {"type":"success", "data":{"notification":"Successfully unsubscribed to push notifications."}})
 
 async def send_notifications(user_ids, message):
+    print(message)
     subscriptions = await database.get_push_subscriptions(user_ids)
     subscriptions = [json.loads(sub) for sub in subscriptions]
     if not subscriptions: return
