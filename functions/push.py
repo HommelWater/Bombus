@@ -14,12 +14,11 @@ def convert_vapid_public_key_for_browser(vapid_pub_der_b64: str) -> str:
     return urlsafe_b64
 
 VAPID_PUBLIC_KEY = convert_vapid_public_key_for_browser(os.getenv("VAPID_PUBLIC_KEY"))
-VAPID_PRIVATE_KEY = convert_vapid_public_key_for_browser(os.getenv("VAPID_PRIVATE_KEY"))
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_SUB = os.getenv("VAPID_SUB")
 
 async def subscribe(sender_user_id, subscription):
     success = await database.add_push_subscription(sender_user_id, subscription)
-    print(success)
     if not success:
         await send(sender_user_id, {"type":"failure", "data":{"notification":"Couldn't add subscription."}})
         return
