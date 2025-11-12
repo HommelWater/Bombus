@@ -41,6 +41,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
+  console.log(event.data)
   if (!event.data) return;
 
   const data = event.data.json();
