@@ -128,14 +128,13 @@ async def get_push_subscriptions(cursor, user_ids):
 @async_with_db(commit=True)
 async def add_push_subscription(cursor, user_id, subscription):
     endpoint = subscription.get("endpoint")
-    sub_json = subscription.get("subscription_json")
 
-    if not user_id or not endpoint or not sub_json:
+    if not user_id or not endpoint:
         return None
 
-    if not isinstance(sub_json, str):
+    if not isinstance(subscription, str):
         import json
-        sub_json = json.dumps(sub_json)
+        subscription = json.dumps(subscription)
 
     await cursor.execute('INSERT INTO push_subscriptions (user_id, endpoint, subscription_json) VALUES (?, ?, ?)', (user_id, endpoint, sub_json))
     return cursor.lastrowid
