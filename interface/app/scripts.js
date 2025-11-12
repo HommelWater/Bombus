@@ -658,6 +658,7 @@ function load(){
         }
     });
     if ("serviceWorker" in navigator) {
+        chatWindow.style.background = "red";
         window.addEventListener("load", async () => {
             registration = await navigator.serviceWorker.register("/app/service-worker.js");
         });
