@@ -41,17 +41,25 @@ async def unsubscribe(sender_user_id, subscription):
 async def send_notifications(user_ids, message):
     subscriptions = await database.get_push_subscriptions(user_ids)
     if not subscriptions: return
-    for sub in subscriptions:
+    for row in subscriptions:
+        sub_json_str = row.get("subscription_json")
+        if not sub_json_str:
+            continue
+        sub = json.loads(sub_json_str)  # now we have the dict
+        
+        if not sub.get("endpoint"):
+            continue
+
+        parsed = urlparse(sub["endpoint"])
+        aud = f"{parsed.scheme}://{parsed.netloc}"
+
         try:
-            print(sub)
-            parsed = urlparse(sub["endpoint"])
-            aud = f"{parsed.scheme}://{parsed.netloc}"
             webpush(
                 subscription_info=sub,
                 data=message,
                 vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims={"sub": VAPID_SUB, "aud": aud}
-            )
+            )        
         except WebPushException as ex:
             if ex.response and ex.response.status_code in [404, 410]:
                 if sub and sub["endpoint"]:
