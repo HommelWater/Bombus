@@ -658,7 +658,6 @@ function load(){
         }
     });
     if ("serviceWorker" in navigator) {
-        chatWindow.style.background = "red";
         window.addEventListener("load", async () => {
             registration = await navigator.serviceWorker.register("/app/service-worker.js");
         });
@@ -684,12 +683,7 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function subscribeToPush(vapid_public_key) {
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-        console.warn("Permission for notifications was denied");
-        return;
-    }
-    if (!registration || !registration.pushManager) return;
+    if (!registration) return;
 
     const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
