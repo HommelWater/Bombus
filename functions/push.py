@@ -4,6 +4,7 @@ from .networking import send, broadcast
 from . import database
 from dotenv import load_dotenv
 import base64
+import json
 
 load_dotenv()
 
@@ -38,6 +39,7 @@ async def unsubscribe(sender_user_id, subscription):
 
 async def send_notifications(user_ids, message):
     subscriptions = await database.get_push_subscriptions(user_ids)
+    subscriptions = [json.loads(sub) for sub in subscriptions]
     if not subscriptions: return
     for sub in subscriptions:
         try:
