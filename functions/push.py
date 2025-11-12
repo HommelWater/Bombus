@@ -32,9 +32,9 @@ async def unsubscribe(sender_user_id, subscription):
     if subscription and subscription["endpoint"]:
         success = await database.remove_push_subscription(sender_user_id, subscription)
     if not success:
-        await send(sender_user_id, {"type":"failure", "data":{"notification":"Couldn't add subscription."}})
+        await send(sender_user_id, {"type":"failure", "data":{"notification":"Couldn't remove subscription."}})
         return
-    await send(sender_user_id, {"type":"success", "data":{"notification":"Successfully subscribed to push notifications."}})
+    await send(sender_user_id, {"type":"success", "data":{"notification":"Successfully unsubscribed to push notifications."}})
 
 async def send_notifications(user_ids, message):
     subscriptions = await database.get_push_subscriptions(user_ids)
