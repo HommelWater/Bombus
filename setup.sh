@@ -59,7 +59,7 @@ After=network.target
 User=$(whoami)
 WorkingDirectory=$(pwd)
 EnvironmentFile=$(pwd)/.env
-ExecStart=$(pwd)/venv/bin/uvicorn server:app --host 127.0.0.1 --port ${PORT} --workers 1
+ExecStart=$(pwd)/venv/bin/uvicorn -u server:app --host 127.0.0.1 --port ${PORT} --workers 1
 Restart=always
 
 [Install]

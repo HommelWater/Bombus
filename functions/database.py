@@ -129,8 +129,6 @@ async def get_push_subscriptions(cursor, user_ids):
         query = base_query
         await cursor.execute(query)
 
-    return await cursor.fetchall()
-
 @async_with_db(commit=True)
 async def add_push_subscription(cursor, user_id, subscription):
     endpoint = subscription.get("endpoint")
