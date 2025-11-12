@@ -48,7 +48,6 @@ async def send_notifications(user_ids, message):
                 subscription_info=sub,
                 data=message,
                 vapid_private_key=VAPID_PRIVATE_KEY,
-                vapid_public_key=VAPID_PUBLIC_KEY,
                 vapid_claims={"sub": VAPID_SUB}
             )
         except WebPushException as ex:
