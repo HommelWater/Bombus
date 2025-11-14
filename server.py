@@ -52,6 +52,9 @@ request_map = {
       
     "push_subscribe":   push.subscribe,
     "push_unsubscribe": push.unsubscribe,
+
+    "new_file":         files.new_file,
+    "file_upload":      files.file_upload
 }
 
 from contextlib import asynccontextmanager
@@ -102,7 +105,8 @@ async def endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
-            print(data)
+            if not data["type"] == "file_upload": print(data)
+            else: print(data["data"].keys())
 
             message_type = data.get("type")
             if not message_type or message_type not in request_map:

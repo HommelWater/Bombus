@@ -71,6 +71,7 @@ function sendPost() {
 	input.value = "";
 }
 
+let files = {};
 const MAX_BUFFERED_AMOUNT = 16 * 1024 * 1024;
 async function sendChunk(socket, chunkData) {
     socket.send(JSON.stringify(chunkData));
@@ -89,48 +90,50 @@ async function hashFile(file) {
 }
 
 const CHUNK_SIZE = 1024 * 1024;
-async function uploadFiles() {
-    const files = document.getElementById('files-input').files;
-
-    for (const file of files) {
+async function newFiles() { //Runs whenever new files are added, notifies the server that the user wants to upload some files.
+    const newFiles = document.getElementById('files-input').files;
+    for (const f of newFiles) {
         const hash = await hashFile(file);
-
-        await sendChunk(socket, {
-            type: "file_upload",
-            data: { name: file.name, size: file.size, hash }
-        });
-
-        const reader = new FileReader();
-        let offset = 0;
-
-        await new Promise((resolve, reject) => {
-            reader.onerror = () => reject(reader.error);
-
-            reader.onload = async function(event) {
-                const chunk = event.target.result;
-
-                await sendChunk(socket, {
-                    type: "file_upload",
-                    data: { hash, offset, chunk: Array.from(new Uint8Array(chunk)) }
-                });
-
-                offset += chunk.byteLength;
-
-                if (offset < file.size) {
-                    readNextChunk();
-                } else {
-                    resolve();
-                }
-            };
-
-            function readNextChunk() {
-                const slice = file.slice(offset, offset + CHUNK_SIZE);
-                reader.readAsArrayBuffer(slice);
-            }
-
-            readNextChunk();
-        });
+        files[hash] = f;
+        await sendChunk(socket, {"type": "new_file", "data": { "name": f.name, "size": f.size, "hash":hash }});
     }
+}
+
+
+async function uploadFile(hash){//Runs whenever the server is ready to receive the files.
+    const indicator = document.getElementById("upload-indicator");
+    const file = files[hash];
+    if (!file) return; //add some error in the upload bar?
+
+    indicator.style.display = "block";
+    indicator.innerText = file.name;
+    const reader = new FileReader();
+    let offset = 0;
+
+    await new Promise((resolve, reject) => {
+        reader.onerror = () => reject(reader.error);
+
+        reader.onload = async function(event) {
+            const chunk = event.target.result;
+            const base64Chunk = btoa(String.fromCharCode(...new Uint8Array(chunk)));
+            await sendChunk(socket, {"type": "file_upload", "data": { "hash":hash, "offset":offset, "chunk": base64Chunk }});
+
+            offset += chunk.byteLength;
+            indicator.style.background = `linear-gradient(to right, var(--color-button) ${(offset / file.size) * 100}%, var(--color-button-h) 0%);`
+            if (offset < file.size) {
+                readNextChunk();
+            } else {
+                resolve();
+            }
+        };
+
+        function readNextChunk() {
+            const slice = file.slice(offset, offset + CHUNK_SIZE);
+            reader.readAsArrayBuffer(slice);
+        }
+
+        readNextChunk();
+    });
 }
 
 function changeProfilePicture(e, target_user_id) {

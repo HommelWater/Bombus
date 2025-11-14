@@ -130,6 +130,26 @@ body {
     display: flex;
 }
 
+#chat-footer{
+	display:flex;
+	flex-direction: column;
+}
+
+#upload-indicator{
+	height:1.5rem; 
+	background: 
+	linear-gradient(to right,
+		var(--color-button) 0%,
+		var(--color-button-h) 0%
+	);
+	background-repeat: no-repeat;
+	color:var(--color-text);
+	text-align: left;
+	border: 1px solid var(--color-border);
+	margin-left: 3px;
+	display:none;
+}
+
 #sidebar-button{
     text-align: left; 
     width:30px;
@@ -157,10 +177,15 @@ body {
 #sidebar-button:hover, #search-button:hover{
 	cursor:pointer;
 }
+
 #search-bar{
 	background: var(--color-button);
 	border: 1px solid var(--color-border);
 	color: var(--color-text);
+}
+
+#files-input-label{
+	width:25px;
 }
 
 #add-channel-item, #delete-channel-item, #invite-code-item, #theme-toggle-item, #notification-item{

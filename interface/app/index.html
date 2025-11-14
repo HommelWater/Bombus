@@ -34,14 +34,16 @@
             </div>
             <div id="chat-window"></div>
             
-            <div id="message-box">
-                <div class="file-input">
-                    <label id="files-input-label" for="files-input">📁</label>
-                    <input type="file" id="files-input" multiple style="display:none">
-                    <div id="upload-progress"></div>
+            <div id="chat-footer">
+                <div id="upload-indicator"></div>
+                <div id="message-box">
+                    <textarea id="user-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
+                    <div class="file-input">
+                        <label id="files-input-label" for="files-input">📁</label>
+                        <input type="file" id="files-input" multiple style="display:none">
+                    </div>
+                    <button id="send-button" class="btn up" style="display:none">Send</button>
                 </div>
-                <textarea id="user-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
-                <button id="send-button" class="btn up" style="display:none">Send</button>
             </div>
         </div>
         <div id ="sidebar-r" class="sidebar">
