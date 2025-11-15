@@ -93,7 +93,7 @@ const CHUNK_SIZE = 1024 * 1024;
 async function newFiles() { //Runs whenever new files are added, notifies the server that the user wants to upload some files.
     const newFiles = document.getElementById('files-input').files;
     for (const f of newFiles) {
-        const hash = await hashFile(file);
+        const hash = await hashFile(f);
         files[hash] = f;
         await sendChunk(socket, {"type": "new_file", "data": { "name": f.name, "size": f.size, "hash":hash }});
     }
@@ -119,10 +119,12 @@ async function uploadFile(hash){//Runs whenever the server is ready to receive t
             await sendChunk(socket, {"type": "file_upload", "data": { "hash":hash, "offset":offset, "chunk": base64Chunk }});
 
             offset += chunk.byteLength;
-            indicator.style.background = `linear-gradient(to right, var(--color-button) ${(offset / file.size) * 100}%, var(--color-button-h) 0%);`
+            
             if (offset < file.size) {
+                indicator.style.background = `linear-gradient(to right, var(--color-button) ${(offset / file.size) * 100}%, var(--color-button-h) 0%);`;
                 readNextChunk();
             } else {
+                indicator.style.background = `var(--color-button)`;
                 resolve();
             }
         };
@@ -639,7 +641,7 @@ function load(){
     document.getElementById("settings-header").addEventListener('click', ()=>{toggleDiv('settings-content')})
     document.getElementById("users-header").addEventListener('click', ()=>{toggleDiv('user-list')})
     document.getElementById("channels-header").addEventListener('click', ()=>{toggleDiv('channels')})
-    document.getElementById("files-input").addEventListener('change', uploadFiles);
+    document.getElementById("files-input").addEventListener('change', newFiles);
     const textarea = document.querySelector('#message-box textarea');
     textarea.addEventListener('input', function () {
         this.style.height = '1.5rem';
