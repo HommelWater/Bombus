@@ -106,7 +106,6 @@ async def endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             if not data["type"] == "file_upload": print(data)
-            else: print(data["data"].keys())
 
             message_type = data.get("type")
             if not message_type or message_type not in request_map:

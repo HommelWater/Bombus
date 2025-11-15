@@ -137,11 +137,7 @@ body {
 
 #upload-indicator{
 	height:1.5rem; 
-	background: 
-	linear-gradient(to right,
-		var(--color-button) 0%,
-		var(--color-button-h) 0%
-	);
+	background: var(--color-button-h);
 	background-repeat: no-repeat;
 	color:var(--color-text);
 	text-align: left;

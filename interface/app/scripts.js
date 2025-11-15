@@ -81,15 +81,53 @@ async function sendChunk(socket, chunkData) {
     }
 }
 
-async function hashFile(file) {
-    const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
+function bufferToBase64(buffer) {
+    return new Promise((resolve) => {
+        let reader = new FileReader();
+        reader.onloadend = () => {
+            resolve(reader.result.split(",")[1]); // strip data:... prefix
+        };
+        reader.readAsDataURL(new Blob([buffer]));
+    });
 }
 
-const CHUNK_SIZE = 1024 * 1024;
+//Builds a merkle tree to hash larger files. Maybe pass each chunk's hash along to the server?
+async function hashFile(file) {
+  const leafHashes = [];
+
+  let offset = 0;
+  while (offset < file.size) {
+    const chunk = file.slice(offset, offset + CHUNK_SIZE);
+    const buf = await chunk.arrayBuffer();
+    const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(buf)))
+    leafHashes.push(hash);
+    offset += CHUNK_SIZE;
+  }
+
+  let level = leafHashes;
+
+  while (level.length > 1) {
+    const nextLevel = [];
+
+    for (let i = 0; i < level.length; i += 2) {
+      const left = level[i];
+      const right = level[i + 1] || left;
+
+      const combined = new Uint8Array(left.length + right.length);
+      combined.set(left, 0);
+      combined.set(right, left.length);
+
+      nextLevel.push(new Uint8Array(await crypto.subtle.digest("SHA-256", combined)));
+    }
+
+    level = nextLevel;
+  }
+
+  return Array.from(level[0]).map(b => b.toString(16).padStart(2, '0')).join('');;
+}
+
+
+const CHUNK_SIZE = 1024 * 1024 * 4;
 async function newFiles() { //Runs whenever new files are added, notifies the server that the user wants to upload some files.
     const newFiles = document.getElementById('files-input').files;
     for (const f of newFiles) {
@@ -98,7 +136,6 @@ async function newFiles() { //Runs whenever new files are added, notifies the se
         await sendChunk(socket, {"type": "new_file", "data": { "name": f.name, "size": f.size, "hash":hash }});
     }
 }
-
 
 async function uploadFile(hash){//Runs whenever the server is ready to receive the files.
     const indicator = document.getElementById("upload-indicator");
@@ -115,13 +152,18 @@ async function uploadFile(hash){//Runs whenever the server is ready to receive t
 
         reader.onload = async function(event) {
             const chunk = event.target.result;
-            const base64Chunk = btoa(String.fromCharCode(...new Uint8Array(chunk)));
+            const base64Chunk = await bufferToBase64(chunk);
             await sendChunk(socket, {"type": "file_upload", "data": { "hash":hash, "offset":offset, "chunk": base64Chunk }});
 
             offset += chunk.byteLength;
             
             if (offset < file.size) {
-                indicator.style.background = `linear-gradient(to right, var(--color-button) ${(offset / file.size) * 100}%, var(--color-button-h) 0%);`;
+                const percent = Math.floor((offset / file.size) * 100);
+                indicator.style.background =
+                `linear-gradient(to right,
+                    var(--color-button) 0%,
+                    var(--color-button) ${percent}%,
+                    var(--color-button-h) calc(${percent}% + 1px)`;
                 readNextChunk();
             } else {
                 indicator.style.background = `var(--color-button)`;
@@ -599,6 +641,9 @@ async function message(e){
     } else 
     if (type == "vapid_public_key"){
         await subscribeToPush(data.key);
+    } else
+    if (type == "start_upload"){
+        await uploadFile(data.hash);
     }
 }
 
