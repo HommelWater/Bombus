@@ -8,7 +8,13 @@ const urlsToCache = [
   "/images/icons/192.png",
   "/images/icons/512.png"
 ];
-const shouldSendNotification = false;
+let isVisible = false;
+
+self.addEventListener("message", event => {
+  if (event.data.type === "VISIBILITY") {
+    isVisible = event.data.state === "visible";
+  }
+});
 
 
 self.addEventListener("install", (event) => {
@@ -43,8 +49,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", async (event) => {
-  const clients = await self.clients.matchAll({ type: "window" });
-  if(clients.length !== 0) return;
+  if(isVisible) return;
   const message = event.data.text();
 
   const title = "New Message";
