@@ -47,7 +47,7 @@ async def push_notify(sender_user_id, message):
         if not sub_json_str or user_id:
             continue
         async with state_lock:
-            if len(connections[user_id]) != 0: continue  # Only push when no connections for this user are active.
+            if connections[user_id]: continue  # Only push when no connections for this user are active.
         await send(1, {"r":row})
         sub = json.loads(sub_json_str)
         if not sub.get("endpoint"):
