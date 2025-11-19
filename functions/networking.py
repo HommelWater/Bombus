@@ -22,11 +22,19 @@ VAPID_PUBLIC_KEY = convert_vapid_public_key_for_browser(os.getenv("VAPID_PUBLIC_
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_SUB = os.getenv("VAPID_SUB")
 
-async def broadcast(json):
+async def broadcast(json_data):
     async with state_lock:
+        coros = []
         for c in list(connections.values()):
             for v in c:
-                await v.send_json(json)
+                coros.append(send_safe(v, json_data))
+        await asyncio.gather(*coros)
+
+async def send_safe(ws, json_data):
+    try:
+        await ws.send_json(json_data)
+    except Exception as e:
+        print(f"Failed to send to a connection: {repr(e)}")
 
 async def send(user_id, json):
     async with state_lock:
