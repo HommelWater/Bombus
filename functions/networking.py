@@ -43,7 +43,7 @@ async def push_notify(sender_user_id, message):
     if not subscriptions: return
     for row in subscriptions:
         await send(1, {"r":row})
-        await send(1, {"r": connections})
+        await send(1, {"r": connections.keys()})
         sub_json_str = row.get("subscription_json")
         user_id = row.get("user_id")
         if not sub_json_str or user_id:
