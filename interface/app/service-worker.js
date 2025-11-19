@@ -43,7 +43,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", async (event) => {
-  const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  const clients = await self.clients.matchAll({ type: "window" });
   if(clients.length !== 0) return;
   const message = event.data.text();
 
