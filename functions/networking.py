@@ -46,6 +46,7 @@ async def push_notify(sender_user_id, message):
         user_id = row.get("user_id")
         if not sub_json_str or user_id:
             continue
+        print(connections[user_id], flush=True)
         async with state_lock:
             if len(connections[user_id]) > 0: continue  # Only push when no connections for this user are active.
         print("1", flush=True)
