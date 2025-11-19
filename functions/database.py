@@ -120,7 +120,7 @@ async def init_database():
 @async_with_db(fetchall=True)
 async def get_push_subscriptions(cursor):
     await cursor.execute("""
-        SELECT ps.subscription_json, u.username
+        SELECT ps.subscription_json, u.username, ps.user_id
         FROM push_subscriptions AS ps
         JOIN users AS u ON ps.user_id = u.id
     """)
