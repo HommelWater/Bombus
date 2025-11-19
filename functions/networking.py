@@ -48,14 +48,16 @@ async def push_notify(sender_user_id, message):
             continue
         async with state_lock:
             if len(connections[user_id]) > 0: continue  # Only push when no connections for this user are active.
-        
+        print("1", flush=True)
         sub = json.loads(sub_json_str)
         if not sub.get("endpoint"):
             continue
-
+        
+        print("1", flush=True)
         parsed = urlparse(sub["endpoint"])
         aud = f"{parsed.scheme}://{parsed.netloc}"
         data = {"message":message, "username":sender.get("username"), "user_id":sender_user_id}
+        print("2", flush=True)
         try:
             webpush(
                 subscription_info=sub,
