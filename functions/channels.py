@@ -65,4 +65,5 @@ async def send_post(sender_user_id, channel_id, content):
         await send(sender_user_id, {"type":"failure", "data":{"notification":"Could not retrieve created post."}})
         return
     await broadcast({"type":"posts", "data":{"posts":[post]}})
+    print("teststsetaroan")
     await push_notify(sender_user_id, content)
