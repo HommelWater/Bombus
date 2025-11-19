@@ -1,9 +1,6 @@
 const CACHE_NAME = "bombus-cache-v1";
 const urlsToCache = [
   "/",
-  "/app/index.html",
-  "/app/styles.css",
-  "/app/scripts.js",
   "/app/manifest.json",
   "/images/icons/192.png",
   "/images/icons/512.png"
