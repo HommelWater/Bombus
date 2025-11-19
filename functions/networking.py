@@ -38,16 +38,12 @@ async def send(user_id, json):
     await broadcast({"type":"activity", "data":{"user_id":user_id}})
 
 async def push_notify(sender_user_id, message):
-    print(f"{sender_user_id}: {message}", flush=True)
     subscriptions = await database.get_push_subscriptions()
-    print(subscriptions)
-    await send(1, {"test":subscriptions})
     sender = await database.get_user(sender_user_id)
     if not subscriptions: return
     for row in subscriptions:
         sub_json_str = row.get("subscription_json")
         user_id = row.get("user_id")
-        print(user_id)
         if not sub_json_str or user_id:
             continue
         async with state_lock:

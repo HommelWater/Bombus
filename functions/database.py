@@ -22,7 +22,7 @@ def async_with_db(commit=False, fetchone=False, fetchall=False):
                         return [dict(r) for r in rows]
                     return result
             except Exception as e:
-                print(f"[ASYNC DB ERROR] in {func.__name__}: {e}")
+                print(f"[ASYNC DB ERROR] in {func.__name__}: {e}", flush=True)
                 return None
         return wrapper
     return decorator
