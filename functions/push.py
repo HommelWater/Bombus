@@ -46,8 +46,8 @@ async def send_notifications(user_ids, message):
         if not sub_json_str:
             continue
         sub = json.loads(sub_json_str)  # now we have the dict
-        
-        if not sub.get("endpoint"):
+        user_id = row.get("user_id")
+        if not sub.get("endpoint") or not user_id:
             continue
 
         parsed = urlparse(sub["endpoint"])

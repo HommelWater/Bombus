@@ -119,7 +119,7 @@ async def init_database():
 
 @async_with_db(fetchall=True)
 async def get_push_subscriptions(cursor, user_ids):
-    base_query = "SELECT subscription_json FROM push_subscriptions"
+    base_query = "SELECT subscription_json, user_id FROM push_subscriptions"
     
     if user_ids and len(user_ids) != 0:
         placeholders = ",".join("?" for _ in user_ids)
@@ -153,8 +153,8 @@ async def add_push_subscription(cursor, user_id, subscription):
     return endpoint
 
 @async_with_db(commit=True)
-async def remove_push_subscription(cursor, endpoint):
-    await cursor.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
+async def remove_push_subscription(cursor, user_id, endpoint):
+    await cursor.execute("DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?", (user_id, endpoint,))
     return cursor.lastrowid
 
 # FILES

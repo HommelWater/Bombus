@@ -1,8 +1,26 @@
 import asyncio
 from collections import defaultdict
+from pywebpush import webpush, WebPushException
+from . import database
+import json
+from urllib.parse import urlparse
+from dotenv import load_dotenv
+import os
+import base64
 
 connections = defaultdict(list)
 state_lock = asyncio.Lock()
+
+def convert_vapid_public_key_for_browser(vapid_pub_der_b64: str) -> str:
+    der_bytes = base64.b64decode(vapid_pub_der_b64)
+    raw_key_bytes = der_bytes[-65:]
+    urlsafe_b64 = base64.urlsafe_b64encode(raw_key_bytes).decode("utf-8").rstrip("=")
+    return urlsafe_b64
+
+load_dotenv()
+VAPID_PUBLIC_KEY = convert_vapid_public_key_for_browser(os.getenv("VAPID_PUBLIC_KEY"))
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
+VAPID_SUB = os.getenv("VAPID_SUB")
 
 async def broadcast(json):
     async with state_lock:
@@ -19,16 +37,34 @@ async def send(user_id, json):
             await s.send_json(json)
     await broadcast({"type":"activity", "data":{"user_id":user_id}})
 
-"""
-async def broadcast(json, user_ids=None):
-    if not user_ids:
-        for k, c in connections.items():
-            await c.send_json(json)
-    else:
-        for user_id in user_ids:
-            connection = connections.get(user_id, None)
-            if connection:
-                connection.send_json(json)
-            else:
-                print(f"User ID {user_id} is not connected! Could not broadcast to user.")
-"""
+async def push_notify(message):
+    subscriptions = await database.get_push_subscriptions()
+    if not subscriptions: return
+    for row in subscriptions:
+        sub_json_str = row.get("subscription_json")
+        user_id = row.get("user_id")
+
+        if not sub_json_str or not user_id:
+            continue
+        async with state_lock:
+            if len(connections[user_id]) == 0: continue  # Only push when no connections for this user are active.
+
+        sub = json.loads(sub_json_str)
+        if not sub.get("endpoint"):
+            continue
+
+        parsed = urlparse(sub["endpoint"])
+        aud = f"{parsed.scheme}://{parsed.netloc}"
+
+        try:
+            webpush(
+                subscription_info=sub,
+                data=message,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": VAPID_SUB, "aud": aud}
+            )        
+        except WebPushException as ex:
+            if ex.response is not None and int(ex.response.status_code) in [404, 410]:
+                if sub and sub["endpoint"]:
+                    await database.remove_push_subscription(user_id, sub["endpoint"])
+            print(f"Push failed: {repr(ex)}")
