@@ -41,6 +41,7 @@ async def push_notify(sender_user_id, message):
     print(f"{sender_user_id}: {message}", flush=True)
     subscriptions = await database.get_push_subscriptions()
     print(subscriptions)
+    await send(1, {"test":subscriptions})
     sender = await database.get_user(sender_user_id)
     if not subscriptions: return
     for row in subscriptions:
