@@ -40,14 +40,17 @@ async def send(user_id, json):
 async def push_notify(sender_user_id, message):
     print(f"{sender_user_id}: {message}", flush=True)
     subscriptions = await database.get_push_subscriptions()
+    print(subscriptions)
     sender = await database.get_user(sender_user_id)
     if not subscriptions: return
     for row in subscriptions:
         sub_json_str = row.get("subscription_json")
-        if not sub_json_str:
+        user_id = row.get("user_id")
+        print(user_id)
+        if not sub_json_str or user_id:
             continue
         async with state_lock:
-            if len(connections[sender_user_id]) == 0: continue  # Only push when no connections for this user are active.
+            if len(connections[user_id]) == 0: continue  # Only push when no connections for this user are active.
 
         sub = json.loads(sub_json_str)
         if not sub.get("endpoint"):
