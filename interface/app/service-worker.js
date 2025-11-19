@@ -8,14 +8,6 @@ const urlsToCache = [
   "/images/icons/192.png",
   "/images/icons/512.png"
 ];
-let isVisible = false;
-
-self.addEventListener("message", event => {
-  if (event.data.type === "VISIBILITY") {
-    isVisible = event.data.state === "visible";
-  }
-});
-
 
 self.addEventListener("install", (event) => {
   console.log("[Service Worker] Installing...");
@@ -49,7 +41,6 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", async (event) => {
-  if(isVisible) return;
   const message = event.data.text();
 
   const title = "New Message";
