@@ -40,14 +40,14 @@ async def send(user_id, json):
 async def push_notify(sender_user_id, message):
     print(f"{sender_user_id}: {message}", flush=True)
     subscriptions = await database.get_push_subscriptions()
+    sender = await database.get_user(sender_user_id)
     if not subscriptions: return
     for row in subscriptions:
         sub_json_str = row.get("subscription_json")
-        user_id = row.get("user_id")
-        if not sub_json_str or not user_id:
+        if not sub_json_str:
             continue
         async with state_lock:
-            if len(connections[user_id]) == 0: continue  # Only push when no connections for this user are active.
+            if len(connections[sender_user_id]) == 0: continue  # Only push when no connections for this user are active.
 
         sub = json.loads(sub_json_str)
         if not sub.get("endpoint"):
@@ -55,8 +55,6 @@ async def push_notify(sender_user_id, message):
 
         parsed = urlparse(sub["endpoint"])
         aud = f"{parsed.scheme}://{parsed.netloc}"
-
-        sender = await database.get_user(sender_user_id)
         data = {"message":message, "username":sender.get("username"), "user_id":sender_user_id}
         try:
             webpush(
