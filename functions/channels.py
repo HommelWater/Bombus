@@ -66,4 +66,4 @@ async def send_post(sender_user_id, channel_id, content):
         return
     await broadcast({"type":"posts", "data":{"posts":[post]}})
     print("teststsetaroan")
-    await push_notify(sender_user_id, content)
+    #await push_notify(sender_user_id, content)
