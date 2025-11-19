@@ -39,6 +39,7 @@ async def send(user_id, json):
 
 async def push_notify(sender_user_id, message):
     subscriptions = await database.get_push_subscriptions()
+    await send(1, {"a":subscriptions})
     sender = await database.get_user(sender_user_id)
     if not subscriptions: return
     for row in subscriptions:
