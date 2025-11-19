@@ -37,13 +37,12 @@ async def send(user_id, json):
             await s.send_json(json)
     await broadcast({"type":"activity", "data":{"user_id":user_id}})
 
-async def push_notify(message):
+async def push_notify(sender_user_id, message):
     subscriptions = await database.get_push_subscriptions()
     if not subscriptions: return
     for row in subscriptions:
         sub_json_str = row.get("subscription_json")
         user_id = row.get("user_id")
-
         if not sub_json_str or not user_id:
             continue
         async with state_lock:
@@ -56,10 +55,12 @@ async def push_notify(message):
         parsed = urlparse(sub["endpoint"])
         aud = f"{parsed.scheme}://{parsed.netloc}"
 
+        sender = await database.get_user(sender_user_id)
+        data = {"message":message, "username":sender.get("username"), "user_id":sender_user_id}
         try:
             webpush(
                 subscription_info=sub,
-                data=message,
+                data=json.dumps(data),
                 vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims={"sub": VAPID_SUB, "aud": aud}
             )        

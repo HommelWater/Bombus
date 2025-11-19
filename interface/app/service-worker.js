@@ -41,12 +41,15 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", async (event) => {
-  const message = event.data.text();
+  const data = event.data.json();
+  const message = data.message;
+  const username = data.username;
+  const user_id = data.user_id;
 
-  const title = "New Message";
+  const title = username || "New Message";
   const options = {
     body: message || "You have a new notification",
-    icon: "/images/icons/192.png",
+    icon: `/images/users/${user_id}.png`,
     data: message, 
   };
 
