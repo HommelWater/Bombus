@@ -38,7 +38,7 @@ async def send(user_id, json):
     await broadcast({"type":"activity", "data":{"user_id":user_id}})
 
 async def push_notify(sender_user_id, message):
-    print(f"{sender_user_id}: {message}")
+    print(f"{sender_user_id}: {message}", flush=True)
     subscriptions = await database.get_push_subscriptions()
     if not subscriptions: return
     for row in subscriptions:
