@@ -715,11 +715,13 @@ function load(){
         console.warn("Push notifications are not supported in this browser.");
     }   
     document.addEventListener("visibilitychange", () => {
-    navigator.serviceWorker?.controller?.postMessage({
-            type: "VISIBILITY",
-            state: document.visibilityState
-        });
-    });
+        console.log(document.visibilityState);
+        navigator.serviceWorker?.controller?.postMessage({
+                type: "VISIBILITY",
+                state: document.visibilityState
+            });
+        }
+    );
 }
 
 function urlBase64ToUint8Array(base64String) {
