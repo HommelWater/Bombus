@@ -67,4 +67,4 @@ async def push_notify(sender_user_id, message):
             if ex.response is not None and int(ex.response.status_code) in [404, 410]:
                 if sub and sub["endpoint"]:
                     await database.remove_push_subscription(user_id, sub["endpoint"])
-            print(f"Push failed: {repr(ex)}")
+            print(f"Push failed: {repr(ex)}", flush=True)
