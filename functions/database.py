@@ -153,8 +153,8 @@ async def add_push_subscription(cursor, user_id, subscription):
     return endpoint
 
 @async_with_db(commit=True)
-async def remove_push_subscription(cursor, user_id, endpoint):
-    await cursor.execute("DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?", (user_id, endpoint,))
+async def remove_push_subscription(cursor, endpoint):
+    await cursor.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
     return cursor.lastrowid
 
 # FILES
