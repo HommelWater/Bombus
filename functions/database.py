@@ -119,11 +119,15 @@ async def init_database():
 
 @async_with_db(fetchall=True)
 async def get_push_subscriptions(cursor, user_ids):
-    base_query = "SELECT subscription_json, user_id FROM push_subscriptions"
+    base_query = """
+        SELECT ps.subscription_json, u.username
+        FROM push_subscriptions AS ps
+        JOIN users AS u ON ps.user_id = u.id
+    """
     
     if user_ids and len(user_ids) != 0:
         placeholders = ",".join("?" for _ in user_ids)
-        query = f"{base_query} WHERE user_id IN ({placeholders})"
+        query = f"{base_query} WHERE ps.user_id IN ({placeholders})"
         await cursor.execute(query, tuple(user_ids))
     else:
         query = base_query
