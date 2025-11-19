@@ -8,6 +8,8 @@ const urlsToCache = [
   "/images/icons/192.png",
   "/images/icons/512.png"
 ];
+const shouldSendNotification = false;
+
 
 self.addEventListener("install", (event) => {
   console.log("[Service Worker] Installing...");
@@ -40,7 +42,9 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-self.addEventListener("push", (event) => {
+self.addEventListener("push", async (event) => {
+  const clients = await self.clients.matchAll({ type: "window" });
+  if(clients.length == 0) return;
   const message = event.data.text();
 
   const title = "New Message";
