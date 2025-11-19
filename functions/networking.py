@@ -63,7 +63,7 @@ async def push_notify(sender_user_id, message):
                 vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims={"sub": VAPID_SUB, "aud": aud}
             )        
-        except WebPushException as ex:
+        except Exception as ex:
             if ex.response is not None and int(ex.response.status_code) in [404, 410]:
                 if sub and sub["endpoint"]:
                     await database.remove_push_subscription(user_id, sub["endpoint"])
