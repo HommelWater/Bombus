@@ -49,7 +49,7 @@ self.addEventListener("push", async (event) => {
   const title = username || "New Message";
   const options = {
     body: message || "You have a new notification",
-    icon: `/images/users/${user_id}.png`,
+    icon: `/images/users/${user_id}.webp`,
     data: message, 
   };
 
