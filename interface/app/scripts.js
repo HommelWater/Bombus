@@ -812,6 +812,10 @@ function vc_disconnect(channel_id, user_id){
         audio.pause();
         delete state.vc_peer_audio[user_id];
     }
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
 }
 
 async function offer(from_user_id, offer){
