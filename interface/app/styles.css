@@ -317,6 +317,10 @@ h2 {
 	max-width:90vw
 }
 
+.chat-post:hover{
+	background-color: var(--color-button);
+}
+
 .post-username{
 	display:flex;
 	border-bottom:1px solid var(--color-border);
