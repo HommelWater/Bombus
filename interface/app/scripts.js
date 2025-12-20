@@ -803,6 +803,10 @@ function vc_disconnect(channel_id, user_id){
         state.vc_peers = {};
         Object.values(state.vc_peer_audio).forEach(audio => audio.pause());
         state.vc_peer_audio = {};
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+        }
         return;
     }
     const pc = state.vc_peers[user_id];
@@ -812,10 +816,6 @@ function vc_disconnect(channel_id, user_id){
     if (audio) {
         audio.pause();
         delete state.vc_peer_audio[user_id];
-    }
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-        localStream = null;
     }
 }
 
