@@ -405,6 +405,7 @@ h2 {
 
 .sidebar-item-header:hover, .user-info-row:hover, .channel:hover{
 	cursor:pointer;
+	background-color: var(--color-subtable-row);
 }
 
 .file-input{
