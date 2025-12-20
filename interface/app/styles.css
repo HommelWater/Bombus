@@ -301,7 +301,7 @@ h2 {
 }
 
 .user:hover{
-	background-color: var(--color-border);
+	background-color: var(--color-row-hover);
 }
 
 .user-icon{
@@ -322,7 +322,7 @@ h2 {
 }
 
 .chat-post:hover{
-	background-color: var(--color-border);
+	background-color: var(--color-row-hover);
 }
 
 .post-username{
