@@ -671,6 +671,7 @@ function close(){
 
 function load(){
     connectWS();
+    document.getElementById("main-image").addEventListener('click', ()=>href="/");
     document.addEventListener('visibilitychange', connectWS);
     document.getElementById("add-channel-button").addEventListener('click', toggleCreateChannelDiv);
     document.getElementById("add-channel-add-button").addEventListener("click", toggleCreateChannelDiv);
