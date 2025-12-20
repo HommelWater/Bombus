@@ -400,7 +400,7 @@ h2 {
 .sidebar-item-header{
 	display:flex;
 	justify-content: space-between;
-	margin:4px;
+	padding:4px;
 }
 
 .sidebar-item-header:hover, .user-info-row:hover, .channel:hover{
