@@ -453,6 +453,20 @@ function setTextChannel(channel_id){
     document.getElementById(`channel-${channel_id}`).style.background = "var(--color-button-h)";
 }
 
+function formatPostContent(raw) {
+  let safe = raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  return safe.replace(
+    /\{file:([a-f0-9]+)\}/gi,
+    '<a class="file-link" href="./files/$1" download="file-$1">💾</a>'
+  );
+}
+
 //Handle new posts kinda efficiently. 
 //Track an post id list in state, keep it sorted, add new elements to the DOM based on index.
 function addPosts(posts) {
@@ -509,7 +523,7 @@ function addPosts(posts) {
         newPost.id = `post-${post.id}`;
         newPost.dataset.author = post.user_id;
         newPost.dataset.created = post.created_at;
-        newPost.textContent = post.content;
+        newPost.innerHTML = formatPostContent(post.content);
 
         if (fromPrevUser && !tooOldFromPrev){
             prevPost.insertAdjacentElement('afterend', newPost);
@@ -542,14 +556,7 @@ function addPosts(posts) {
         const groupDiv = document.createElement('div');
         groupDiv.className = 'post-content-group';
 
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'post-content';
-        contentDiv.id = `post-${post.id}`;
-        contentDiv.dataset.author = post.user_id;
-        contentDiv.dataset.created = post.created_at;
-        contentDiv.textContent = post.content;
-
-        groupDiv.append(contentDiv);
+        groupDiv.append(newPost);
         wrapper.append(usernameDiv, groupDiv);
         if (prevPost) {
             prevPost.parentNode.parentNode.insertAdjacentElement('afterend', wrapper);
@@ -644,6 +651,9 @@ async function message(e){
     } else
     if (type == "start_upload"){
         await uploadFile(data.hash);
+    } else 
+    if (type == "file_upload_complete"){
+        document.getElementById("upload-indicator").style.display = "none";
     }
 }
 

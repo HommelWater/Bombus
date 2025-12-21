@@ -1,5 +1,5 @@
 from .networking import broadcast, send
-from . import database
+from . import database, channels
 from pathlib import Path
 import hashlib
 import base64
@@ -55,13 +55,14 @@ async def file_upload(sender_user_id, hash, offset, chunk):
         return
     
     if offset + len(chunk_bytes) >= file["size"]:
-        await broadcast({"type":"new_file", "data":{"notification":"File hash does not match with user sent hash."}})
+        await channels.send_post(sender_user_id, file["channel"], "{file:hash} " + f"{file["name"]}")
+        await send(sender_user_id, {"type":"file_upload_complete", "data":{"notification":"File uploaded."}})
 
         actual_hash = hash_file(file_path)
         if actual_hash != hash:
             await send(sender_user_id, {"type":"failure", "data":{"notification":"File hash does not match with user sent hash."}})
 
-async def new_file(sender_user_id, hash, name, size):
+async def new_file(sender_user_id, channel_id, hash, name, size):
     user_dir = FILES_DIR / str(sender_user_id)
     user_dir.mkdir(exist_ok=True)
 
@@ -71,7 +72,7 @@ async def new_file(sender_user_id, hash, name, size):
         await send(sender_user_id, {"type":"failure", "data":{"notification":"File already exists."}})
         return
     file_path.touch()
-    await database.store_file_metadata(name, size, hash)
+    await database.store_file_metadata(name, channel_id, size, hash)
     await send(sender_user_id, {"type":"start_upload", "data":{"name":name, "size":size, "hash":hash}})
 
 async def get_files(sender_user_id):

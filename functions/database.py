@@ -94,11 +94,13 @@ async def init_database():
             CREATE TABLE IF NOT EXISTS files (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
+                channel INTEGER,
                 size, INTEGER,
                 hash TEXT UNIQUE,
                 uploader_user_id INTEGER,
                 created_at INTEGER DEFAULT (strftime('%s', 'now')),
                 FOREIGN KEY (uploader_user_id) REFERENCES users (id) ON DELETE CASCADE
+                FOREIGN KEY (channel) REFERENCES channels (id) ON DELETE CASCADE
             )
         ''')
         await conn.execute('''
@@ -114,6 +116,11 @@ async def init_database():
         await conn.execute('''
             CREATE INDEX IF NOT EXISTS idx_posts_channel_created_at ON posts(channel, created_at DESC);
         ''')# TODO: Add more, better indexes!
+
+        await conn.execute('''
+            ALTER TABLE files
+                ADD COLUMN channel INTEGER REFERENCES channels (id) ON DELETE CASCADE;
+        ''')
 
 # PUSH SUBSCRIPTIONS
 
@@ -156,8 +163,8 @@ async def remove_push_subscription(cursor, user_id, endpoint):
 # FILES
 
 @async_with_db(commit=True)
-async def store_file_metadata(cursor, name, size, hash):
-    await cursor.execute("INSERT INTO files (name, size, hash) VALUES (?, ?, ?)", (name, size, hash,))
+async def store_file_metadata(cursor, name, channel_id, size, hash):
+    await cursor.execute("INSERT INTO files (name, channel, size, hash) VALUES (?, ?, ?, ?)", (name, channel_id, size, hash,))
     return cursor.lastrowid
 
 @async_with_db(fetchone=True)

@@ -1,10 +1,10 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-import asyncio
 from functions import auth, channels, users, voice, files, networking, database, push
 import inspect
 import logging
+import aiofiles, os
 
 def safe_call(func, data_dict):
     sig = inspect.signature(func)
@@ -65,6 +65,27 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+@app.get("/files/{hash}")
+async def download():
+    path = f"/interface/files/{hash}"
+    if not os.path.isfile(path):
+        raise HTTPException(404, "File not found")
+
+    file_metadata = database.get_file_metadata(hash=hash)
+
+    stat_result = os.stat(path)
+    headers = {
+        "Content-Disposition": f'attachment; filename="{file_metadata["filename"]}"',
+        "Content-Length": str(stat_result.st_size),
+    }
+
+    CHUNK = 2 * 1024 * 1024
+    async def iterfile():
+        async with aiofiles.open(path, "rb") as f:
+            while chunk := await f.read(CHUNK):
+                yield chunk
+    return StreamingResponse(iterfile(), media_type="application/octet-stream", headers=headers)
 
 @app.get("/")
 async def read_root():
