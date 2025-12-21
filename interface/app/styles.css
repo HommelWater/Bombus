@@ -415,7 +415,7 @@ h2 {
 	display:flex
 }
 
-img {
+.img-upload {
 	width: 100%;
 	max-width: 500px;
 	max-height: 500px;
@@ -427,7 +427,7 @@ img {
 	overflow-wrap: anywhere;
 }
 
-a{
+.file-link{
 	color:var(--color-text);
 	text-decoration: none;
 }
