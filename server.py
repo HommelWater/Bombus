@@ -72,7 +72,7 @@ async def download(hash: str):
     if not os.path.isfile(path):
         raise HTTPException(404, "File not found")
 
-    file_metadata = database.get_file_metadata(hash=hash)
+    file_metadata = await database.get_file_metadata(hash=hash)
     if not file_metadata:
         raise HTTPException(404, "File not found in DB.") 
 
