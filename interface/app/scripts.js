@@ -467,7 +467,7 @@ function formatPostContent(raw) {
     (_, hash, fname) => {
       const ext = fname.split('.').pop()?.toLowerCase();
       if (imageExts.has(ext)) {
-        return `<img id="img-upload" src="./files/${hash}" alt="${fname}" loading="lazy"">`;
+        return `<img class="img-upload" src="./files/${hash}" alt="${fname}" loading="lazy"">`;
       }
       return `<a class="file-link" href="./files/${hash}" download="${fname}">💾 ${fname}</a>`;
     }
