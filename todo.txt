@@ -1,6 +1,5 @@
-Safety stuff, anti-spam/ddos stuff, max username lengths, clear up the input from HTML/CSS/JS (though make this optional, could be fun!).
-Allow the user to find any message by id (like with search, add a button to find it in it's context) or by a link.
-File upload, have images just be stored in interface/images and have actual files be separate. 
-Probably allow users to upload then link to files with a tag in their chat or something. 
-Maybe auto send a message with such a tag when a file gets uploaded. 
-Add specific file viewer + copy file links, public or private settings etc.
+Move to federated approach: disentangle frontend from backend, let the user choose what backend server to connect to via a simple hostname.
+Safety stuff: Rate limiting, proper authentication, max username/channel name lengths.
+Improved permissions: Per channel user access, roles?
+Customization: Overhaul colors, layout, themes. Add per user profiles & personal pages.
+Improved VC: Automatic STUN server setup in setup.sh, video chat (with screenshare).

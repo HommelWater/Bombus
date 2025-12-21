@@ -1,6 +1,3 @@
 rewrite this server in C (its just a simple crud backend, but easier to get into programming if people want to modify their server themselves. Also nice if people want to play with adding AI features.)
-Running a private STUN/TURN server could be nice privacy wise. 
 Make it easier to access the database as a user. It needs to filter out sensitive info and return a DB file based on the users permissions.
-Permissions for users per channel is probably a good idea to add after the rewrite.
-fix invite codes to expire and only create the account when the TOTP code is filled in to make sure no 'dead' account is made.
 add better indexing in the DB.
