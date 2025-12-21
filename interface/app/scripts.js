@@ -466,7 +466,7 @@ function formatPostContent(raw) {
     /\{file:([a-f0-9]+):([^}]+)\}/gi,
     (_, hash, fname) => {
       const ext = fname.split('.').pop()?.toLowerCase();
-      if (IMAGE_EXTS.has(ext)) {
+      if (imageExts.has(ext)) {
         return `<a class="file-link image" href="./files/${hash}" target="_blank" rel="noopener">
                   <img src="./files/${hash}" alt="${fname}" loading="lazy"">
                 </a>`;
