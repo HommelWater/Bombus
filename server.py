@@ -73,10 +73,12 @@ async def download(hash: str):
         raise HTTPException(404, "File not found")
 
     file_metadata = database.get_file_metadata(hash=hash)
+    if not file_metadata:
+        raise HTTPException(404, "File not found in DB.") 
 
     stat_result = os.stat(path)
     headers = {
-        "Content-Disposition": f'attachment; filename="{file_metadata["filename"]}"',
+        "Content-Disposition": f'attachment; filename="{file_metadata["name"]}"',
         "Content-Length": str(stat_result.st_size),
     }
 
