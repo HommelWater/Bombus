@@ -117,11 +117,6 @@ async def init_database():
             CREATE INDEX IF NOT EXISTS idx_posts_channel_created_at ON posts(channel, created_at DESC);
         ''')# TODO: Add more, better indexes!
 
-        await conn.execute('''
-            ALTER TABLE files
-                ADD COLUMN channel INTEGER REFERENCES channels (id) ON DELETE CASCADE;
-        ''')
-
 # PUSH SUBSCRIPTIONS
 
 @async_with_db(fetchall=True)
