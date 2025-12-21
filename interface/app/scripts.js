@@ -462,8 +462,8 @@ function formatPostContent(raw) {
     .replace(/'/g, '&#39;');
 
   return safe.replace(
-    /\{file:([a-f0-9]+)\}/gi,
-    '<a class="file-link" href="./files/$1" download="file-$1">💾</a>'
+    /\{file:([a-f0-9]+):([^}]+)\}/gi,
+    '<a class="file-link" href="./files/$1" download="$2">💾 $2</a>'
   );
 }
 

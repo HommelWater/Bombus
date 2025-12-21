@@ -55,7 +55,7 @@ async def file_upload(sender_user_id, hash, offset, chunk):
         return
     
     if offset + len(chunk_bytes) >= file["size"]:
-        await channels.send_post(sender_user_id, file["channel"], f"{{file:{hash}}} " + f"{file["name"]}")
+        await channels.send_post(sender_user_id, file["channel"], f"{{file:{hash}:{file["name"]}}}")
         await send(sender_user_id, {"type":"file_upload_complete", "data":{"notification":"File uploaded."}})
 
         actual_hash = hash_file(file_path)
