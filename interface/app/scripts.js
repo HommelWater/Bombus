@@ -16,9 +16,7 @@ const state = {
 };
 let current_text_channel = -1;
 let current_voice_channel = -1;
-const ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' }
-];
+const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 
 //Helper
 function isVisible(elem) {

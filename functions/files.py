@@ -24,7 +24,7 @@ def hash_file(path):
     while len(levels) > 1:
         next_level = []
 
-        for i in range(0, len(level), 2):
+        for i in range(0, len(levels), 2):
             left = levels[i]
             right = levels[i + 1] if i + 1 < len(levels) else left
 
@@ -55,7 +55,7 @@ async def file_upload(sender_user_id, hash, offset, chunk):
         return
     
     if offset + len(chunk_bytes) >= file["size"]:
-        await broadcast(sender_user_id, {"type":"new_file", "data":{"notification":"File hash does not match with user sent hash."}})
+        await broadcast({"type":"new_file", "data":{"notification":"File hash does not match with user sent hash."}})
 
         actual_hash = hash_file(file_path)
         if actual_hash != hash:
