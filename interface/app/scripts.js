@@ -454,16 +454,25 @@ function setTextChannel(channel_id){
 }
 
 function formatPostContent(raw) {
-  let safe = raw
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    imageExts = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp']);
+    let safe = raw
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 
   return safe.replace(
     /\{file:([a-f0-9]+):([^}]+)\}/gi,
-    '<a class="file-link" href="./files/$1" download="$2">💾 $2</a>'
+    (_, hash, fname) => {
+      const ext = fname.split('.').pop()?.toLowerCase();
+      if (IMAGE_EXTS.has(ext)) {
+        return `<a class="file-link image" href="./files/${hash}" target="_blank" rel="noopener">
+                  <img src="./files/${hash}" alt="${fname}" loading="lazy"">
+                </a>`;
+      }
+      return `<a class="file-link" href="./files/${hash}" download="${fname}">💾 ${fname}</a>`;
+    }
   );
 }
 
