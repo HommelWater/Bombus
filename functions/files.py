@@ -36,7 +36,7 @@ def hash_file(path):
     return levels[0].hex()
 
 async def file_upload(sender_user_id, hash, offset, chunk):
-    user_dir = FILES_DIR / str(sender_user_id)
+    user_dir = FILES_DIR
     user_dir.mkdir(exist_ok=True)
 
     file_path = user_dir / hash
@@ -63,7 +63,7 @@ async def file_upload(sender_user_id, hash, offset, chunk):
             await send(sender_user_id, {"type":"failure", "data":{"notification":"File hash does not match with user sent hash."}})
 
 async def new_file(sender_user_id, channel_id, hash, name, size):
-    user_dir = FILES_DIR / str(sender_user_id)
+    user_dir = FILES_DIR
     user_dir.mkdir(exist_ok=True)
 
     file_path = user_dir / hash
