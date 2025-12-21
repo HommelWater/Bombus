@@ -68,7 +68,7 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get("/files/{hash}")
 async def download(hash: str):
-    path = f"/interface/files/{hash}"
+    path = f"./interface/files/{hash}"
     if not os.path.isfile(path):
         raise HTTPException(404, "File not found")
 
