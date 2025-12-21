@@ -797,7 +797,7 @@ async function vc_connect(channel_id, new_user_id){
 }
 
 function vc_disconnect(channel_id, user_id){
-    state.vc_channel_users[channel_id].pop(user_id);
+    state.vc_channel_users[channel_id] = state.vc_channel_users[channel_id].filter(i => i !== user_id);
     if (user_id == state.self_user) {
         Object.values(state.vc_peers).forEach(pc => pc.close());
         state.vc_peers = {};
