@@ -133,7 +133,7 @@ async function newFiles() { //Runs whenever new files are added, notifies the se
     for (const f of newFiles) {
         const hash = await hashFile(f);
         files[hash] = f;
-        await sendChunk(socket, {"type": "new_file", "data": { "name": f.name, "size": f.size, "hash":hash }});
+        await sendChunk(socket, {"type": "new_file", "data": { "name": f.name, "channel_id":current_text_channel, "size": f.size, "hash":hash }});
     }
 }
 
