@@ -13,10 +13,10 @@ const state = {
     vc_peer_audio:{},
     posts: [],
     posts_exhausted: false,
+    ice_info:{}
 };
 let current_text_channel = -1;
 let current_voice_channel = -1;
-const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 
 //Helper
 function isVisible(elem) {
@@ -661,6 +661,9 @@ async function message(e){
     } else 
     if (type == "file_upload_complete"){
         document.getElementById("upload-indicator").style.display = "none";
+    } else 
+    if (type == "ice_info"){
+        state.ice_info = data.servers;
     }
 }
 
@@ -781,7 +784,7 @@ async function vc_connect(channel_id, new_user_id){
 
     if (!localStream) localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     state.vc_channel_users[channel_id].forEach(async (user_id) => {
-        const pc = new RTCPeerConnection({iceServers: ICE_SERVERS});
+        const pc = new RTCPeerConnection({iceServers: state.ice_info});
         state.vc_peers[user_id] =  pc;
         
         localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
@@ -837,7 +840,7 @@ function vc_disconnect(channel_id, user_id){
 }
 
 async function offer(from_user_id, offer){
-    const pc = new RTCPeerConnection({iceServers: ICE_SERVERS});
+    const pc = new RTCPeerConnection({iceServers: state.ice_info});
     state.vc_peers[from_user_id] = pc;
     localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
