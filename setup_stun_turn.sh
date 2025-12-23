@@ -75,7 +75,7 @@ enable_service(){
 }
 
 write_env(){
-  ENV_FILE=./.env
+  ENV_FILE=.env
   echo -e "${GREEN}* Writing FastAPI env file → ${YELLOW}${ENV_FILE}${NC}"
   cat >> "$ENV_FILE" <<EOF
 # source this file or export before starting FastAPI
