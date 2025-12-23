@@ -74,20 +74,39 @@ async def download(hash: str):
 
     file_metadata = await database.get_file_metadata(hash=hash)
     if not file_metadata:
-        raise HTTPException(404, "File not found in DB.") 
+        raise HTTPException(404, "File not found in DB.")
 
-    stat_result = os.stat(path)
+    filename = file_metadata["name"]
+    ext = filename.split('.')[-1].lower() if '.' in filename else ''
+    
+    # Determine if it's an image (use FileResponse)
+    image_exts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'}
+    is_image = ext in image_exts
+
     headers = {
-        "Content-Disposition": f'attachment; filename="{file_metadata["name"]}"',
-        "Content-Length": str(stat_result.st_size),
+        "Content-Disposition": f'attachment; filename="{filename}"',
+        "Cache-Control": "public, max-age=31536000, immutable",
     }
 
-    CHUNK = 2 * 1024 * 1024
-    async def iterfile():
-        async with aiofiles.open(path, "rb") as f:
-            while chunk := await f.read(CHUNK):
-                yield chunk
-    return StreamingResponse(iterfile(), media_type="application/octet-stream", headers=headers)
+    if is_image:
+        # FileResponse for images: optimal caching & browser rendering
+        return FileResponse(
+            path,
+            media_type=f"image/{ext}" if ext != 'jpg' else "image/jpeg",
+            headers=headers
+        )
+    else:
+        # StreamingResponse for large/non-image files: memory efficient
+        CHUNK = 8 * 1024 * 1024
+        async def iterfile():
+            async with aiofiles.open(path, "rb") as f:
+                while chunk := await f.read(CHUNK):
+                    yield chunk
+        return StreamingResponse(
+            iterfile(),
+            media_type="application/octet-stream",
+            headers=headers
+        )
 
 @app.get("/")
 async def read_root():
