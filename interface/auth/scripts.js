@@ -57,15 +57,6 @@ function generateTOTPQRCode(secret, issuer, accountName) {
     
     const totpUri = `otpauth://totp/${issuer}:${accountName}?secret=${secret}&issuer=${issuer}`;
     
-    new QRCode(container, {
-        text: totpUri,
-        width: 256,
-        height: 256,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-    });
-    
     const qrElement = container.firstElementChild;
     if (qrElement) {
         const link = document.createElement("a");
@@ -78,6 +69,15 @@ function generateTOTPQRCode(secret, issuer, accountName) {
         container.insertBefore(link, qrElement);
         link.appendChild(qrElement);
     }
+
+    new QRCode(container, {
+        text: totpUri,
+        width: 256,
+        height: 256,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
     
     document.getElementById('qrcode-label').innerHTML = 
         `Scan the QR code or click to open in your authenticator app.`;
