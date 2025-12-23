@@ -69,6 +69,7 @@ async def new_file(sender_user_id, channel_id, hash, name, size):
     file_path = user_dir / hash
 
     if file_path.exists():
+        await channels.send_post(sender_user_id, channel_id, f"{{file:{hash}:{name}}}")
         await send(sender_user_id, {"type":"failure", "data":{"notification":"File already exists."}})
         return
     file_path.touch()
