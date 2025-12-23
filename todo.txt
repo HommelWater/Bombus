@@ -2,4 +2,4 @@ Move to federated approach: disentangle frontend from backend, let the user choo
 Safety stuff: Rate limiting, proper authentication, max username/channel name lengths.
 Improved permissions: Per channel user access, roles?
 Customization: Overhaul colors, layout, themes. Add per user profiles & personal pages.
-Improved VC: Automatic STUN server setup in setup.sh, video chat (with screenshare).
+Improved VC: video chat (with screenshare).
