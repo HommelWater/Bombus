@@ -18,9 +18,8 @@ banner(){
 
 get_input(){
   DOMAIN=$(ask "Domain name (empty for bare-IP)" "")
-  PUBLIC_IP=$(ask "Public IPv4" "$(curl -4 -s https://ifconfig.me)")
-  SECRET=$(ask "Static auth secret (leave empty for random)" "")
-  [[ -z "$SECRET" ]] && SECRET=$(openssl rand -hex 32)
+  PUBLIC_IP=$(curl -4 -s https://ifconfig.me)
+  SECRET=$(openssl rand -hex 32)
 }
 
 warn_ports(){
