@@ -455,6 +455,7 @@ function setTextChannel(channel_id){
 
 function formatPostContent(raw) {
     imageExts = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp']);
+    const videoExts = new Set(['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'm4v']);
     let safe = raw
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -467,8 +468,11 @@ function formatPostContent(raw) {
     (_, hash, fname) => {
       const ext = fname.split('.').pop()?.toLowerCase();
       if (imageExts.has(ext)) {
-        return `<img class="img-upload" src="./files/${hash}" alt="${fname}" loading="lazy"">`;
+        return `<img class="img-upload" src="./files/${hash}" alt="${fname}" loading="lazy">`;
       }
+      if (videoExts.has(ext)) {
+        return `<video class="video-upload" src="./files/${hash}" controls loading="lazy"></video>`;
+      }a
       return `<a class="file-link" href="./files/${hash}" download="${fname}" target="_blank" rel="noopener noreferrer">💾 ${fname}</a>`;
     }
   );
