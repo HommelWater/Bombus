@@ -469,7 +469,7 @@ function formatPostContent(raw) {
       if (imageExts.has(ext)) {
         return `<img class="img-upload" src="./files/${hash}" alt="${fname}" loading="lazy"">`;
       }
-      return `<a class="file-link" href="./files/${hash}" download="${fname}">💾 ${fname}</a>`;
+      return `<a class="file-link" href="./files/${hash}" download="${fname}" target="_blank" rel="noopener noreferrer">💾 ${fname}</a>`;
     }
   );
 }
