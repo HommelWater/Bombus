@@ -85,7 +85,7 @@ async def get_invite(sender_user_id):
     await send(sender_user_id, {"type":"invite", "data":{"invite_code":invite_code}})
 
 async def ice_info(sender_user_id):
-    print(f"HOST: {TURN_HOST}, SECRET: {TURN_SECRET}", sys.stderr)
+    await send(sender_user_id, {"type":"failure", "data":{"notification": f"HOST: {TURN_HOST}, SECRET: {TURN_SECRET}", sys.stderr}})
     ttl  = 24*3600
     user = f"{int(time.time()) + ttl }:webrtc"
     pwd  = base64.b64encode(
