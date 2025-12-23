@@ -123,7 +123,7 @@ async def endpoint(websocket: WebSocket):
     await users.get_self(user_id)
     await voice.get_users(user_id)
     await push.vapid_public_key(user_id)
-    #await auth.ice_info(user_id)
+    await auth.ice_info(user_id)
     await networking.send(user_id, {"type":"session_login", "data":{"notification":"Successfully logged in."}})
 
     try:
