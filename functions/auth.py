@@ -2,12 +2,14 @@ from . import database
 from .networking import send
 import pyotp
 import uuid
-import hmac, hashlib, base64, time, os
+import hmac, hashlib, base64, time, os, sys
 from dotenv import load_dotenv
 
 load_dotenv()
 TURN_SECRET = os.getenv("TURN_SECRET")
 TURN_HOST   = os.getenv("TURN_HOST")
+
+print(f"HOST: {TURN_HOST}, SECRET: {TURN_SECRET}", sys.stderr)
 
 async def signup(websocket, username, key):
     if username == "admin":
@@ -90,10 +92,10 @@ async def ice_info(sender_user_id):
     pwd  = base64.b64encode(
              hmac.new(TURN_SECRET.encode(), user.encode(), hashlib.sha1).digest()
            ).decode()
-    #await send(sender_user_id, {"type":"ice_info", "data":{"servers":[
-    #        {"urls": f"stun:{TURN_HOST}:3478"},
-    #        {
-    #            "urls": [f"turn:{TURN_HOST}:3478", f"turns:{TURN_HOST}:5349"],
-    #            "username": user,
-    #            "credential": pwd
-    #        }]}})
+    await send(sender_user_id, {"type":"ice_info", "data":{"servers":[
+            {"urls": f"stun:{TURN_HOST}:3478"},
+            {
+                "urls": [f"turn:{TURN_HOST}:3478", f"turns:{TURN_HOST}:5349"],
+                "username": user,
+                "credential": pwd
+            }]}})
