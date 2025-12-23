@@ -52,14 +52,33 @@ function load(){
 }
 
 function generateTOTPQRCode(secret, issuer, accountName) {
-	const totpUri = `otpauth://totp/${issuer}:${accountName}?secret=${secret}&issuer=${issuer}`;
-	var qrcode = new QRCode(document.getElementById("qrcode"), {
-		text: totpUri,
-		width: 256,
-		height: 256,
-		colorDark : "#000000",
-		colorLight : "#ffffff",
-		correctLevel : QRCode.CorrectLevel.H
-	});
-    document.getElementById('qrcode-label').innerHTML = `Scan the QR code with your authenticator app and use the TOTP code to log in.`;
+    const container = document.getElementById("qrcode");
+    container.innerHTML = "";
+    
+    const totpUri = `otpauth://totp/${issuer}:${accountName}?secret=${secret}&issuer=${issuer}`;
+    
+    new QRCode(container, {
+        text: totpUri,
+        width: 256,
+        height: 256,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    
+    const qrElement = container.firstElementChild;
+    if (qrElement) {
+        const link = document.createElement("a");
+        link.href = totpUri;
+        link.style.display = "inline-block";
+        link.style.cursor = "pointer";
+        link.title = "Click to open in authenticator app";
+        
+        // Wrap the QR element
+        container.insertBefore(link, qrElement);
+        link.appendChild(qrElement);
+    }
+    
+    document.getElementById('qrcode-label').innerHTML = 
+        `Scan the QR code or click to open in your authenticator app.`;
 }

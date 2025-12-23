@@ -1,0 +1,145 @@
+# Connection & Rate Limiting Zones
+# 10 req/s per IP for general access (adjust based on activity heartbeats)
+limit_req_zone $binary_remote_addr zone=ws_connect:10m rate=5r/s;  # Stricter for WS connections
+limit_req_zone $binary_remote_addr zone=file_download:10m rate=20r/m;  # File retrieval
+limit_conn_zone $binary_remote_addr zone=per_ip:10m;
+limit_conn_zone $server_name zone=per_server:10m;
+
+# Block Common Attack Patterns
+map $http_user_agent $bad_ua {
+    default 0;
+    ~*(sqlmap|nikto|nmap|masscan|curl|wget|scrapy) 1;
+    ~*(bot|crawler|spider|scan|flood|brute) 1;
+}
+
+map $request_uri $sensitive_path {
+    default 0;
+    ~*(\.\./|\.git/|\.svn/|\.env\b|config\.|wp-|phpmyadmin) 1;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
+
+    # Minimal limits for redirector
+    client_max_body_size 1m;
+    client_header_timeout 5s;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        try_files $uri =404;
+        access_log off;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ${DOMAIN};
+    server_tokens off;
+
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    # Connection Limits
+    limit_conn per_server 500;          # Max total connections
+    limit_conn per_ip 10;               # Max connections per IP
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ws: wss:; media-src 'self'; frame-ancestors 'none';" always;
+    
+    # Hide backend fingerprints
+    proxy_hide_header X-Powered-By;
+    more_clear_headers Server;  # Requires nginx-extras
+
+    # Request Size Limits
+    client_body_buffer_size 128k;
+    client_max_body_size 50m;          # File uploads via WS (match CHUNK size × max files)
+    client_header_buffer_size 1k;
+    large_client_header_buffers 2 1k;
+    
+    # Timeout Tuning for WS
+    client_body_timeout 12s;
+    client_header_timeout 12s;
+    keepalive_timeout 30s;
+    keepalive_requests 1000;
+    send_timeout 60s;
+
+    location /ws {
+        limit_req zone=ws_connect burst=10 nodelay;
+        proxy_pass http://127.0.0.1:${PORT}/ws;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WS settings
+        proxy_read_timeout 86400s;       # 24h
+        proxy_send_timeout 86400s;
+        proxy_buffering off;             # For real-time
+        proxy_request_buffering off;     # Don't buffer WS frames
+        
+        # Connection tuning
+        proxy_socket_keepalive on;
+    }
+
+    # Static Content - App Pages
+    location = / {
+        limit_req zone=global burst=10 nodelay;
+        
+        proxy_pass http://127.0.0.1:${PORT};
+        include /etc/nginx/proxy_params;
+    }
+
+    location = /auth {
+        limit_req zone=global burst=5 nodelay;
+        
+        proxy_pass http://127.0.0.1:${PORT};
+        include /etc/nginx/proxy_params;
+    }
+
+    # Static Files (JS, CSS, etc.)
+    location ~* \.(js|css|png|jpg|jpeg|svg|woff|woff2|ttf|ico)$ {
+        # High burst for static assets
+        limit_req zone=global burst=50 nodelay;
+        
+        proxy_pass http://127.0.0.1:${PORT};
+        include /etc/nginx/proxy_params;
+        
+        # Cache static assets
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Block Sensitive Paths
+    location ~ /\.(?!well-known).* {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    location ~* \.(py|pyc|pyo|db|sqlite|git|svn|env|ini|conf|log)$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+}
