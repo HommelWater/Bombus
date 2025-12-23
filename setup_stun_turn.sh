@@ -75,9 +75,9 @@ enable_service(){
 }
 
 write_env(){
-  ENV_FILE=$HOME/turn.env
+  ENV_FILE=./.env
   echo -e "${GREEN}* Writing FastAPI env file → ${YELLOW}${ENV_FILE}${NC}"
-  cat > "$ENV_FILE" <<EOF
+  cat >> "$ENV_FILE" <<EOF
 # source this file or export before starting FastAPI
 TURN_SECRET=${SECRET}
 TURN_HOST=${DOMAIN:-${PUBLIC_IP}}
@@ -105,4 +105,3 @@ enable_service
 write_env
 show_creds
 echo -e "${GREEN}Done!${NC}"
-echo -e "Start FastAPI with:${YELLOW} export \$(cat $HOME/turn.env) && uvicorn main:app${NC}"
