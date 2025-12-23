@@ -55,14 +55,17 @@ function generateTOTPQRCode(secret, issuer, accountName) {
     const container = document.getElementById("qrcode");
     container.innerHTML = "";
     
-    const totpUri = `otpauth://totp/${issuer}:${accountName}?secret=${secret}&issuer=${issuer}`;
-
+    const totpUri = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}?secret=${encodeURIComponent(secret)}&issuer=${encodeURIComponent(issuer)}`;
+    
+    // Create link first
     const link = document.createElement("a");
     link.href = totpUri;
     link.style.display = "inline-block";
     link.style.cursor = "pointer";
-    link.title = "Click to open in authenticator app";
+    link.style.position = "relative";
+    link.title = "Click to open authenticator app";
     
+    // Generate QR *inside* the link
     new QRCode(link, {
         text: totpUri,
         width: 256,
@@ -71,6 +74,21 @@ function generateTOTPQRCode(secret, issuer, accountName) {
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
     });
+    
+    // Append link to container
+    container.appendChild(link);
+    
+    // Add visual indicator
+    setTimeout(() => {
+        const badge = document.createElement("div");
+        badge.textContent = "🟢 Click to open";
+        badge.style.cssText = `
+            position: absolute; bottom: 5px; right: 5px;
+            background: rgba(255,255,255,0.9); padding: 4px 8px;
+            border-radius: 4px; font-size: 10px; pointer-events: none;
+        `;
+        link.appendChild(badge);
+    }, 50);
     
     document.getElementById('qrcode-label').innerHTML = 
         `Scan the QR code or click to open in your authenticator app.`;
