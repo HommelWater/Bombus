@@ -9,8 +9,6 @@ load_dotenv()
 TURN_SECRET = os.getenv("TURN_SECRET")
 TURN_HOST   = os.getenv("TURN_HOST")
 
-print(f"HOST: {TURN_HOST}, SECRET: {TURN_SECRET}", sys.stderr)
-
 async def signup(websocket, username, key):
     if username == "admin":
         totp_secret = pyotp.random_base32()
@@ -87,6 +85,7 @@ async def get_invite(sender_user_id):
     await send(sender_user_id, {"type":"invite", "data":{"invite_code":invite_code}})
 
 async def ice_info(sender_user_id):
+    print(f"HOST: {TURN_HOST}, SECRET: {TURN_SECRET}", sys.stderr)
     ttl  = 24*3600
     user = f"{int(time.time()) + ttl }:webrtc"
     pwd  = base64.b64encode(
