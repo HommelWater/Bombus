@@ -27,13 +27,13 @@ async def create_channel(sender_user_id, name):
     
     await broadcast({"type":"channels", "data":{"channels":channels}})
 
-async def delete_channel(sender_user_id, name): #  Maybe switch this so that it just hides it and doesn't permanently delete it lol :')
+async def delete_channel(sender_user_id, channel_id): #  Maybe switch this so that it just hides it and doesn't permanently delete it lol :')
     user = await database.get_user(sender_user_id)
     if not user or not user["admin"]:
         await send(sender_user_id, {"type":"failure", "data":{"notification":"You do not have permission to create a new channel."}})
         return
 
-    success = await database.delete_channel(name)
+    success = await database.delete_channel(channel_id)
     if not success:
         await send(sender_user_id, {"type":"failure", "data":{"notification":"Could not delete channel."}})
         return
