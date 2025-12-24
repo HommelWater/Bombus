@@ -52,12 +52,12 @@ function load(){
 }
 
 function generateTOTPQRCode(secret, issuer, accountName) {
+    document.getElementById("login-code").innerHTML = "";
     const container = document.getElementById("qrcode");
     container.innerHTML = "";
     
     const totpUri = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}?secret=${encodeURIComponent(secret)}&issuer=${encodeURIComponent(issuer)}`;
     
-    // Create link first
     const link = document.createElement("a");
     link.href = totpUri;
     link.style.display = "inline-block";
@@ -65,7 +65,6 @@ function generateTOTPQRCode(secret, issuer, accountName) {
     link.style.position = "relative";
     link.title = "Click to open authenticator app";
     
-    // Generate QR *inside* the link
     new QRCode(link, {
         text: totpUri,
         width: 256,
@@ -75,10 +74,8 @@ function generateTOTPQRCode(secret, issuer, accountName) {
         correctLevel: QRCode.CorrectLevel.H
     });
     
-    // Append link to container
     container.appendChild(link);
     
-    // Add visual indicator
     setTimeout(() => {
         const badge = document.createElement("div");
         badge.textContent = "🟢 Click to open";
