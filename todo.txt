@@ -3,3 +3,5 @@ Safety stuff: Rate limiting, proper authentication, max username/channel name le
 Improved permissions: Per channel user access, roles?
 Customization: Overhaul colors, layout, themes. Add per user profiles & personal pages.
 Improved VC: video chat (with screenshare).
+Chat: Links to specific messages + dynamic loading of newer messages. Encryption?
+Optional: Re-encoding of media.

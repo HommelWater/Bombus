@@ -4,7 +4,13 @@ from fastapi.staticfiles import StaticFiles
 from functions import auth, channels, users, voice, files, networking, database, push
 import inspect
 import logging
-import aiofiles, os
+import aiofiles, os, asyncio, time, math
+from collections import defaultdict
+
+MAX_REQUESTS_PER_MINUTE = 50
+
+ema_tracking = defaultdict(lambda: (0, 0.0))
+state_lock = asyncio.Lock()
 
 def safe_call(func, data_dict):
     sig = inspect.signature(func)
@@ -24,7 +30,21 @@ def safe_call(func, data_dict):
             f"Function {func.__name__} received unexpected parameters: {mismatched_params}. "
             f"Expected: {expected_params}. Provided: {list(data_dict.keys())}"
         )
-    return func(**filtered_data)
+    user_id = data_dict["sender_user_id"]
+    with state_lock:
+        last, rate = ema_tracking[user_id]
+        if last != 0:
+            interval = max((time.time() - last) / 60.0, 1e-10)
+            alpha = math.exp(-interval)
+            r_inst = 1.0 / interval
+            rate = (1 - alpha) * r_inst + alpha * rate
+            rate = max(rate, 1.0 / interval)
+
+        ema_tracking[user_id] = (time.time(), rate)
+    if rate <= MAX_REQUESTS_PER_MINUTE:
+        return func(**filtered_data)
+    else:
+        print(f"User with ID {user_id} hit the rate limit.", flush=True)
 
 request_map = {
     "authenticate":     auth.authenticate,

@@ -55,6 +55,11 @@ async def get_posts(sender_user_id, channel_id=None, from_id=None, direction=Non
     await send(sender_user_id, {"type":"posts", "data":{"posts":posts}})
 
 async def send_post(sender_user_id, channel_id, content):
+    user = await database.get_user(sender_user_id)
+    if not user or user["restricted"] or user["banned"]:
+        await send(sender_user_id, {"type":"failure", "data":{"notification":"You do not have permission to send a post."}})
+        return
+
     post_id = await database.add_post(sender_user_id, channel_id, content)
     if not post_id:
         await send(sender_user_id, {"type":"failure", "data":{"notification":"Could add posts."}})

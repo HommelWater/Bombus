@@ -36,6 +36,10 @@ def hash_file(path):
     return levels[0].hex()
 
 async def file_upload(sender_user_id, hash, offset, chunk):
+    file = await database.get_file_metadata(hash=hash)
+    if not file:
+        await send(sender_user_id, {"type":"failure", "data":{"notification":"File does not exist."}})
+        return
     user_dir = FILES_DIR
     user_dir.mkdir(exist_ok=True)
 
@@ -49,10 +53,7 @@ async def file_upload(sender_user_id, hash, offset, chunk):
         f.seek(offset)
         f.write(chunk_bytes)
     
-    file = await database.get_file_metadata(hash=hash)
-    if not file:
-        await send(sender_user_id, {"type":"failure", "data":{"notification":"File does not exist."}})
-        return
+    
     
     if offset + len(chunk_bytes) >= file["size"]:
         await channels.send_post(sender_user_id, file["channel"], f"{{file:{hash}:{file["name"]}}}")
@@ -63,6 +64,10 @@ async def file_upload(sender_user_id, hash, offset, chunk):
             await send(sender_user_id, {"type":"failure", "data":{"notification":"File hash does not match with user sent hash."}})
 
 async def new_file(sender_user_id, channel_id, hash, name, size):
+    user = await database.get_user(sender_user_id)
+    if not user or user["restricted"] or user["banned"]:
+        await send(sender_user_id, {"type":"failure", "data":{"notification":"You do not have permission to upload a file."}})
+        return
     user_dir = FILES_DIR
     user_dir.mkdir(exist_ok=True)
 

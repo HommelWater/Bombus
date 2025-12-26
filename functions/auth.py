@@ -85,7 +85,6 @@ async def get_invite(sender_user_id):
     await send(sender_user_id, {"type":"invite", "data":{"invite_code":invite_code}})
 
 async def ice_info(sender_user_id):
-    #await send(sender_user_id, {"type":"failure", "data":{"notification": f"HOST: {TURN_HOST}, SECRET: {TURN_SECRET}"}})
     if TURN_HOST is None or TURN_SECRET is None:
         return
     
