@@ -30,6 +30,7 @@ request_info(){
     read -rp "Service Name: " SERVICE_NAME
     read -rp "Domain (e.g. example.com): " DOMAIN
     read -rp "Port: " PORT
+    read -rp "Gemini API key: " GEMINI_API_KEY
 }
 
 setup_python_env(){
@@ -40,7 +41,7 @@ setup_python_env(){
     fi
     source "$VENV_DIR/bin/activate"
     pip install -q -U pip setuptools wheel
-    pip install -q fastapi uvicorn websockets pyotp pillow aiosqlite python-dotenv pywebpush aiofiles
+    pip install -q fastapi uvicorn websockets pyotp pillow aiosqlite python-dotenv pywebpush aiofiles google-genai tantivy
 }
 
 create_config_files(){
@@ -55,6 +56,7 @@ create_dotenv(){
 APP_NAME='${APP_NAME}'
 SERVICE_NAME='${SERVICE_NAME}'
 DOMAIN='${DOMAIN}'
+GEMINI_API_KEY='${GEMINI_API_KEY}'
 EOF
 }
 

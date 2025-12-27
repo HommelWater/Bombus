@@ -1,11 +1,12 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from functions import auth, channels, users, voice, files, networking, database, push
+from functions import auth, channels, users, voice, files, networking, database, push, search
 import inspect
 import logging
 import aiofiles, os, asyncio, time, math
 from collections import defaultdict
+from pydantic import BaseModel
 
 MAX_REQUESTS_PER_MINUTE = 50
 
@@ -86,6 +87,27 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Search Engine API
+class SearchRequest(BaseModel):
+    query:str
+    session_token:str
+
+class IndexRequest(BaseModel):
+    image_base64:str
+    session_token:str
+    url:str
+    title:str
+
+@app.post("/search")
+async def s(request_data: SearchRequest):
+    return search.search(request_data.session_token, request_data.query)
+
+@app.post("/index")
+async def s(request_data: IndexRequest):
+    return search.index_webpage(request_data.session_token, request_data.url, request_data.title, request_data.image_base64)
+
+
+# File API
 @app.get("/files/{hash}")
 async def download(hash: str):
     path = f"./interface/files/{hash}"
@@ -128,6 +150,7 @@ async def download(hash: str):
             headers=headers
         )
 
+# Navigation
 @app.get("/")
 async def read_root():
     return FileResponse("./interface/app/index.html")
@@ -136,6 +159,8 @@ async def read_root():
 async def read_root():
     return FileResponse("./interface/auth/index.html")
 
+
+# Websocket API
 @app.websocket("/ws")
 async def endpoint(websocket: WebSocket):
     await websocket.accept()
