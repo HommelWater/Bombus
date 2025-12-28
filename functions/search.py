@@ -7,6 +7,7 @@ import tantivy
 import json
 import time
 import hashlib
+import os
 
 class TantivySearchIndex:
     def __init__(self, index_path="tantivy_index"):
@@ -20,7 +21,7 @@ class TantivySearchIndex:
         schema_builder.add_unsigned_field("timestamp", stored=True, indexed=True)
         schema_builder.add_unsigned_field("id", stored=True, indexed=False)
         self.schema = schema_builder.build()
-        
+        os.mkdir(index_path)
         self.index = tantivy.Index(self.schema, path=index_path)
         #self.index.tokenizers().register("en_stem", tantivy.tokenizer("en_stem"))
         self.searcher = self.index.searcher()
