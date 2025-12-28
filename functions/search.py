@@ -12,15 +12,15 @@ class TantivySearchIndex:
     def __init__(self, index_path="tantivy_index"):
         # Define schema
         schema_builder = tantivy.SchemaBuilder()
-        schema_builder.add_text_field("title", stored=True, tokenizer_name="raw")
-        schema_builder.add_text_field("description", stored=True, tokenizer_name="raw")
-        schema_builder.add_text_field("direct_keywords", stored=True, tokenizer_name="raw")
-        schema_builder.add_text_field("related_keywords", stored=True, tokenizer_name="raw")
-        schema_builder.add_text_field("url", stored=True, indexed=False)
+        schema_builder.add_text_field("title", stored=True)
+        schema_builder.add_text_field("description", stored=True)
+        schema_builder.add_text_field("direct_keywords", stored=True)
+        schema_builder.add_text_field("related_keywords", stored=True)
+        schema_builder.add_text_field("url", stored=True, tokenizer_name="raw")
         schema_builder.add_unsigned_field("timestamp", stored=True, indexed=True)
         schema_builder.add_unsigned_field("id", stored=True, indexed=False)
-        
         self.schema = schema_builder.build()
+        
         self.index = tantivy.Index(self.schema, path=index_path)
         #self.index.tokenizers().register("en_stem", tantivy.tokenizer("en_stem"))
         self.searcher = self.index.searcher()
@@ -39,7 +39,8 @@ class TantivySearchIndex:
         ))
         
         writer.commit()
-        self.searcher.reload()
+        writer.wait_merging_threads()
+        self.index.reload()
     
     def search(self, query: str, top_k=10):
         query_parser = tantivy.QueryParser.for_index(
