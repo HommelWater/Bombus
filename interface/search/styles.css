@@ -26,10 +26,8 @@ body {
 }
 
 #header {
-    padding: 1rem;
-    border: 1px solid var(--color-border);
-    background: var(--color-card);
-    text-align: left;
+    padding: 10px;
+    text-align: center;
 }
 
 #search {
