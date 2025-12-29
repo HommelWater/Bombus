@@ -153,4 +153,8 @@ body {
     #newly-indexed {
         display: none;
     }
+
+    #search-results, #search{
+        padding:0px;
+    }
 }
