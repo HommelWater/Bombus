@@ -156,8 +156,12 @@ async def read_root():
     return FileResponse("./interface/app/index.html")
 
 @app.get("/auth")
-async def read_root():
+async def read_auth():
     return FileResponse("./interface/auth/index.html")
+
+@app.get("/search")
+async def read_search():
+    return FileResponse("./interface/search/index.html")
 
 
 # Websocket API
