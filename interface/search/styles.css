@@ -136,18 +136,21 @@ body {
     color: var(--color-text);
 }
 
-@media (max-width: 700px) {
-    .container {
+@media (max-width: 1000px) {
+    .container, #search{
         flex-direction: column;
     }
-
-    .search-history {
+    
+    #search-body {
         width: 100%;
-        order: -1;
+        
     }
 
-    .newly-indexed {
-        width: 100%;
-        order: -1;
+    #search-history {
+        display: none;
+    }
+
+    #newly-indexed {
+        display: none;
     }
 }
