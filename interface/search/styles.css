@@ -42,6 +42,11 @@ body {
     overflow: hidden;
 }
 
+#search-body {
+    display:flex;
+    flex-direction: row;
+}
+
 #search-form {
     display: flex;
     padding: 1rem;
