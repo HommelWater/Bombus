@@ -38,13 +38,8 @@ body {
     border: 1px solid #ddd;
     border-radius: 6px;
     display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-#search-body {
-    display:flex;
     flex-direction: row;
+    overflow: hidden;
 }
 
 #search-form {
