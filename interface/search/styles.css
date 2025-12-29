@@ -41,7 +41,9 @@ body {
 }
 
 #search-body {
-    width:80%;
+    width:60%;
+    margin-right:5px;
+    margin-left:5px;
 }
 
 #search-form {
