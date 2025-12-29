@@ -118,12 +118,34 @@ body {
     color: var(--color-text);
 }
 
+#newly-indexed {
+    min-width:300px;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    padding: 1rem;
+}
+
+#newly-indexed-header {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+#newly-indexed-content {
+    font-size: 0.9rem;
+    color: var(--color-text);
+}
+
 @media (max-width: 700px) {
     .container {
         flex-direction: column;
     }
 
     .search-history {
+        width: 100%;
+        order: -1;
+    }
+
+    .newly-indexed {
         width: 100%;
         order: -1;
     }
