@@ -15,13 +15,13 @@
 <body>
     <div id="container" class="container">
         <div id="header"><h3>Search</h3></div>
-
+        
         <div id="search">
             <form id="search-form" action="/search" method="GET">
                 <input 
                     type="text" 
                     id="search-input" 
-                    name="query" 
+                    name="q" 
                     placeholder="Enter your search query..."
                     autocomplete="off"
                     required
@@ -32,10 +32,10 @@
         </div>
         <div id="sidebar-r" class="sidebar">
             <div class="sidebar-items">
-                <div id="history-header" class="sidebar-item-header">
+                <div id="settings-header" class="sidebar-item-header">
                     <h2>History</h2>
                 </div>
-                <div id="search-history">
+                <div id="settings-content">
                     <p>No search history yet.</p>
                 </div>
             </div>

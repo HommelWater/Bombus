@@ -129,7 +129,7 @@
     background-color: var(--color-subtable-row);
 }
 
-#search-content {
+#settings-content {
     padding: 10px;
     text-align: left;
     overflow-y: auto;
@@ -201,7 +201,7 @@
         margin: 0;
     }
 
-    #search-history {
+    #settings-content {
         display: none;
     }
 
