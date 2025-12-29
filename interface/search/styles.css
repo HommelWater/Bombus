@@ -154,7 +154,7 @@ body {
         display: none;
     }
 
-    #search-results, #search, .container{
+    #search-results, #search, .container, body{
         padding:0px;
     }
 }
