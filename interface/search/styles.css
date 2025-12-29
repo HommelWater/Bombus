@@ -77,6 +77,12 @@ body {
     width:100%;
 }
 
+.search-result {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    margin-bottom: 3px;
+}
+
 #search-history {
     min-width:300px;
     background: var(--color-card);
