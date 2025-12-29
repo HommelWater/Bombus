@@ -157,4 +157,8 @@ body {
     #search-results, #search, .container, body{
         padding:0px;
     }
+
+    #search-body{
+        margin:0px;
+    }
 }
