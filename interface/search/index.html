@@ -15,27 +15,26 @@
 <body>
     <div id="container" class="container">
         <div id="header"><h3>Search</h3></div>
-        
         <div id="search">
-            <form id="search-form" action="/search" method="GET">
-                <input 
-                    type="text" 
-                    id="search-input" 
-                    name="q" 
-                    placeholder="Enter your search query..."
-                    autocomplete="off"
-                    required
-                >
-                <button type="submit" id="search-button">Search</button>
-            </form>
-            <div id="search-results"></div>
-        </div>
-        <div id="sidebar-r" class="sidebar">
-            <div class="sidebar-items">
-                <div id="settings-header" class="sidebar-item-header">
+            <div id="search-body">
+                <form id="search-form" action="/search" method="GET">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        name="q" 
+                        placeholder="Enter your search query..."
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" id="search-button">Search</button>
+                </form>
+                <div id="search-results"></div>
+            </div>
+            <div id="search-history">
+                <div id="search-history-header">
                     <h2>History</h2>
                 </div>
-                <div id="settings-content">
+                <div id="search-history-content">
                     <p>No search history yet.</p>
                 </div>
             </div>

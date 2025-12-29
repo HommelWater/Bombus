@@ -22,6 +22,7 @@ body {
     display: flex;
     gap: 1rem;
     height: 100%;
+    flex-direction: column;
 }
 
 #header {
@@ -75,7 +76,7 @@ body {
     background: #fafafa;
 }
 
-.sidebar {
+#search-history {
     width: 250px;
     background: #fff;
     border: 1px solid #ddd;
@@ -83,12 +84,12 @@ body {
     padding: 1rem;
 }
 
-.sidebar-item-header {
+#search-history-header {
     font-weight: bold;
     margin-bottom: 0.5rem;
 }
 
-#settings-content {
+#search-history-content {
     font-size: 0.9rem;
     color: #666;
 }
@@ -98,7 +99,7 @@ body {
         flex-direction: column;
     }
 
-    .sidebar {
+    .search-history {
         width: 100%;
         order: -1;
     }
