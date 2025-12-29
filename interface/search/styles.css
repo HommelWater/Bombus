@@ -1,0 +1,219 @@
+/* Search Page Styles - Matching existing theme */
+
+/* Main search area - like .card but fits flex container */
+#search {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-card);
+    margin: 5px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Header matches chat header pattern */
+#header {
+    text-align: left;
+    display: flex;
+    padding: 12px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-card);
+}
+
+#header h3 {
+    color: var(--color-text);
+    margin: 0;
+}
+
+/* Search form - like #message-box */
+#search-form {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--color-border);
+    background: transparent;
+    padding: 10px;
+}
+
+/* Search input - matches textarea style */
+#search-input {
+    resize: none;
+    border: 1px solid var(--color-border);
+    background: var(--color-button);
+    color: var(--color-text);
+    margin: 0;
+    margin-left: 3px;
+    width: 100%;
+    height: 1.5rem;
+    min-height: 1.5em;
+    max-height: 200px;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4em;
+    margin-right: 4px;
+    padding: 8px;
+}
+
+#search-input:focus {
+    outline: none;
+}
+
+/* Search button - matches .btn and #send-button */
+#search-button {
+    padding: 8px 16px;
+    margin: 0;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    font-weight: inherit;
+    background: var(--color-button);
+    transition: transform .12s ease, opacity .12s ease, background .12s ease;
+    color: var(--color-text);
+    font-size: inherit;
+    font-family: inherit;
+    height: 100%;
+    white-space: nowrap;
+}
+
+#search-button:hover {
+    transform: translateY(-3px);
+    background: var(--color-button-h);
+    opacity: 0.98;
+}
+
+/* Results area - like #chat-window */
+#search-results {
+    background: var(--color-items);
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    text-align: left;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    color: var(--color-text);
+    overscroll-behavior: contain;
+}
+
+/* Sidebar - matches existing .sidebar */
+#sidebar-r {
+    width: 20%;
+    max-width: 250px;
+    background: var(--color-card);
+    margin-right: 5px;
+    margin-left: 5px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-items {
+    margin: 3px;
+    background: var(--color-items);
+    border: 1px solid var(--color-border);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.sidebar-item-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-item-header:hover {
+    cursor: pointer;
+    background-color: var(--color-subtable-row);
+}
+
+#search-content {
+    padding: 10px;
+    text-align: left;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Search result items - similar to .chat-post */
+.search-result-item {
+    background: var(--color-card);
+    margin-bottom: 5px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--color-border);
+    transition: background-color .12s ease;
+}
+
+.search-result-item:hover {
+    background-color: var(--color-row-hover);
+}
+
+.result-title {
+    font-weight: bold;
+    color: var(--color-text);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.result-snippet {
+    color: var(--color-text);
+    opacity: 0.8;
+    font-size: 0.9em;
+    line-height: 1.4em;
+}
+
+.result-meta {
+    font-size: 0.8em;
+    color: var(--color-text);
+    opacity: 0.6;
+    margin-left: auto;
+}
+
+/* Responsive design - matches existing breakpoint */
+@media (max-width: 700px) {
+    .container {
+        width: 100%;
+        padding-right: 0px;
+        padding-left: 0px;
+        padding-top: 0px;
+        max-height: 100%;
+        flex-direction: column;
+    }
+
+    #search {
+        margin: 0;
+        box-shadow: none;
+    }
+
+    #sidebar-r {
+        order: -1;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        margin-bottom: 5px;
+    }
+
+    .sidebar-items {
+        margin: 0;
+    }
+
+    #search-history {
+        display: none;
+    }
+
+    .sidebar-item-header {
+        border-bottom: none;
+    }
+
+    #search-results {
+        padding: 10px;
+    }
+
+    body, html {
+        overscroll-behavior: initial;
+    }
+}

@@ -1,33 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widgets=resizes-content">
     <link rel="icon" href="./images/main.png" type="image/png">
     <title>Search</title>
     <link rel="stylesheet" href="/shared/webkit.css">
-    <link rel="stylesheet" href="/app/styles.css">
+    <link rel="stylesheet" href="/search/styles.css">
     <link rel="stylesheet" href="/shared/themes.css">
     
     <script src="/search/scripts.js"></script>
     <script src="/shared/themes.js"></script>
-    </head>
-    <body>
+</head>
+<body>
     <div id="container" class="container">
-        <div id="chat" class="card">
-            <div id="chat-header">
-                <h3 id="chat-header-text">Search</h3>
-            </div>
-            <div id="chat-window"></div>
+        <div id="header"><h3>Search</h3></div>
+
+        <div id="search">
+            <form id="search-form" action="/search" method="GET">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    name="query" 
+                    placeholder="Enter your search query..."
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit" id="search-button">Search</button>
+            </form>
+            <div id="search-results"></div>
         </div>
-        <div id ="sidebar-r" class="sidebar">
+        <div id="sidebar-r" class="sidebar">
             <div class="sidebar-items">
-                <div id="settings-header" class="sidebar-item-header"><h2>History</h2></div>
-                <div id="settings-content">
-                    test content
+                <div id="history-header" class="sidebar-item-header">
+                    <h2>History</h2>
+                </div>
+                <div id="search-history">
+                    <p>No search history yet.</p>
                 </div>
             </div>
         </div>
     </div>
-    </body>
+</body>
 </html>
