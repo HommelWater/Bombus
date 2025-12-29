@@ -35,7 +35,6 @@ body {
 #search {
     flex: 1;
     background: var(--color-background);
-    border: 1px solid var(--color-border);
     display: flex;
     flex-direction: row;
     overflow: hidden;
