@@ -23,6 +23,7 @@ async function requestRecentlyIndexed(){
 }
 
 async function search(e){
+    console.log("test");
     e.preventDefault();
     const data = {};
     data.query = document.getElementById("search-input").value;
