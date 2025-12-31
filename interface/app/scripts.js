@@ -484,7 +484,6 @@ function addPosts(posts) {
     posts = posts.filter(p => p.channel == current_text_channel || current_text_channel == -1);
     const container = document.querySelector('#chat-window');
     const wasAtBottom = Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 10;
-    const oldHeight = container.scrollHeight;
     if (!posts || posts.length == 0) return;
     for (const post of posts) {
         //Find insertion index in state.posts (sorted array of IDs)
@@ -577,7 +576,7 @@ function addPosts(posts) {
     }
     //Set scrollheight to bottom to display new messages.
     if (wasAtBottom) {
-        container.scrollTop = oldHeight;
+        container.scrollTop = container.scrollHeight;
     }
 }
 
