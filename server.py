@@ -31,7 +31,8 @@ def safe_call(func, data_dict):
             f"Function {func.__name__} received unexpected parameters: {mismatched_params}. "
             f"Expected: {expected_params}. Provided: {list(data_dict.keys())}"
         )
-    user_id = data_dict["sender_user_id"]
+    print (filtered_data)
+    user_id = filtered_data["sender_user_id"]
     with state_lock:
         last, rate = ema_tracking[user_id]
         if last != 0:
