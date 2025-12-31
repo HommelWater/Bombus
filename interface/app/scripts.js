@@ -574,9 +574,12 @@ function addPosts(posts) {
         }
         //get post, get image if there is one, add event listener to wait
         if (wasAtBottom) {
+            const scrollToBottom = () => {
+                container.scrollTop = container.scrollHeight;
+            };
             container.scrollTop = document.querySelector('#chat-window').scrollHeight;
-            wrapper.querySelectorAll('.chat-post:last-of-type img').forEach(d=>d.addEventListener('load', ()=>container.scrollTop = document.querySelector('#chat-window').scrollHeight));
-            wrapper.querySelectorAll('.chat-post:last-of-type video').forEach(d=>d.addEventListener('load', ()=>container.scrollTop = document.querySelector('#chat-window').scrollHeight));
+            wrapper.querySelectorAll('.chat-post:last-of-type img').forEach(d=>d.addEventListener('load', scrollToBottom));
+            wrapper.querySelectorAll('.chat-post:last-of-type video').forEach(d=>d.addEventListener('load', scrollToBottom));
         }
     }
 }
