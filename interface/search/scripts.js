@@ -32,7 +32,7 @@ async function search(e){
         const res = await fetch('search/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(data)
     });
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
