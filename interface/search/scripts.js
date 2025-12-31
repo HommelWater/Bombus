@@ -13,7 +13,7 @@ async function requestRecentlyIndexed(){
         const r = await res.json();
         const results = r.recently_indexed;
 
-        document.getElementById("search-results").innerHTML = results.length > 0 ? "" : "No search results for this query.";
+        document.getElementById("newly-indexed-content").innerHTML = results.length > 0 ? "" : "No search results for this query.";
         results.forEach(r => {
             addRecentlyIndexed(r.title, r.description, r.url);
         });
