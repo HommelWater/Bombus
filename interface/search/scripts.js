@@ -23,7 +23,7 @@ async function requestRecentlyIndexed(){
 }
 
 async function search(e){
-    e.preventDefault()
+    e.preventDefault();
     const data = {};
     data.query = document.getElementById("search-input").value;
     data.session_token = localStorage.getItem("session");
