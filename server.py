@@ -104,11 +104,11 @@ class IndexRequest(BaseModel):
 
 @app.post("/search")
 async def s(request_data: SearchRequest):
-    return {"search_results":search.search(request_data.session_token, request_data.query)}
+    return search.search(request_data.session_token, request_data.query)
 
 @app.post("/search/recent")
 async def s(request_data: RecentIndexRequest):
-    return {"recently_indexed":search.recently_indexed(request_data.session_token)}
+    return search.recently_indexed(request_data.session_token)
 
 @app.post("/index")
 async def s(request_data: IndexRequest):

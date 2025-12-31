@@ -56,7 +56,7 @@ class TantivySearchIndex:
                 'score': score,
                 'doc': doc.to_dict()
             })
-        return results
+        return {"search_results":results}
 
 
 client = genai.Client()
@@ -137,4 +137,4 @@ async def recently_indexed(session_token):
     session = await database.get_session(session_token)
     if not session:
         raise HTTPException(status_code=404, detail="unknown session token")
-    return ttv.recently_indexed_cache
+    return {"recently_indexed": ttv.recently_indexed_cache}
