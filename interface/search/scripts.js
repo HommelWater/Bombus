@@ -1,4 +1,4 @@
-document.addEventListener('load', onLoad);
+window.addEventListener('DOMContentLoaded', onLoad);
 
 async function requestRecentlyIndexed(){
     const data = {};
