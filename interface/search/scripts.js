@@ -1,7 +1,6 @@
 window.addEventListener('DOMContentLoaded', onLoad);
 
-async function requestRecentlyIndexed(e){
-    e.preventDefault();
+async function requestRecentlyIndexed(){
     const data = {};
     data.session_token = localStorage.getItem("session");
     try {
