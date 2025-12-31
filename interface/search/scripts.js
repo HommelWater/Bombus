@@ -23,7 +23,6 @@ async function requestRecentlyIndexed(){
 }
 
 async function search(e){
-    console.log("test");
     e.preventDefault();
     const data = {};
     data.query = document.getElementById("search-input").value;
@@ -37,6 +36,7 @@ async function search(e){
         if (!res.ok) throw new Error(res.status);
         const r = await res.json();
         const results = r.search_results;
+        document.getElementById("search-results").innerHTML = "";
         results.forEach(r => {
             addSearchResult(r.doc.title, r.doc.description, r.doc.url);
         });
