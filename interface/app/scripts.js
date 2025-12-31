@@ -482,7 +482,7 @@ function formatPostContent(raw) {
 function addPosts(posts) {
     posts = posts.filter(p => p.channel == current_text_channel || current_text_channel == -1);
     const container = document.querySelector('#chat-window');
-    const wasAtBottom = Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 10;
+    const wasAtBottom = Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 30;
     if (!posts || posts.length == 0) return;
     for (const post of posts) {
         //Find insertion index in state.posts (sorted array of IDs)
