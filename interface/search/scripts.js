@@ -36,7 +36,8 @@ async function search(e){
         if (!res.ok) throw new Error(res.status);
         const r = await res.json();
         const results = r.search_results;
-        document.getElementById("search-results").innerHTML = "";
+
+        document.getElementById("search-results").innerHTML = results.length > 0 ? "" : "No search results for this query.";
         results.forEach(r => {
             addSearchResult(r.doc.title, r.doc.description, r.doc.url);
         });
