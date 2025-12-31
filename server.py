@@ -8,7 +8,7 @@ import aiofiles, os, asyncio, time, math
 from collections import defaultdict
 from pydantic import BaseModel
 
-MAX_REQUESTS_PER_MINUTE = 50
+MAX_REQUESTS_PER_MINUTE = 150
 
 ema_tracking = defaultdict(lambda: (0, 0.0))
 state_lock = asyncio.Lock()
