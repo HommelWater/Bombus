@@ -582,6 +582,9 @@ function addPosts(posts) {
             wrapper.querySelectorAll('.chat-post:last-of-type video').forEach(d=>d.addEventListener('load', scrollToBottom));
         }
     }
+    if (wasAtBottom) {
+        container.scrollTop = container.scrollHeight;
+    }
 }
 
 async function message(e){
