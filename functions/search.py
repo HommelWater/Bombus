@@ -42,12 +42,11 @@ class TantivySearchIndex:
         self.index.reload()
     
     def search(self, query: str, top_k=10):
-        query_parser = tantivy.QueryParser.for_index(
-            self.index, ["title", "description", "direct_keywords", "related_keywords", "timestamp"]
+        q = self.index.parse_query(
+            query, ["title", "description", "direct_keywords", "related_keywords", "timestamp"]
         )
         
-        query_obj = query_parser.parse_query(query)
-        hits = self.searcher.search(query_obj, top_k).hits
+        hits = self.searcher.search(q, top_k).hits
         
         results = []
         for score, doc_addr in hits:
