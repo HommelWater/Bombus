@@ -93,7 +93,6 @@ class SearchRequest(BaseModel):
     session_token:str
 
 class RecentIndexRequest(BaseModel):
-    query:str
     session_token:str
 
 class IndexRequest(BaseModel):
