@@ -43,7 +43,7 @@ async def safe_call(func, data_dict):
 
         ema_tracking[user_id] = (time.time(), rate)
     if rate <= MAX_REQUESTS_PER_MINUTE:
-        return func(**filtered_data)
+        return await func(**filtered_data)
     else:
         print(f"User with ID {user_id} hit the rate limit.", flush=True)
 
