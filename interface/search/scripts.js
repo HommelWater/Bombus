@@ -35,8 +35,8 @@ async function search(e){
         body: JSON.stringify(data)
     });
         if (!res.ok) throw new Error(res.status);
-        const data = await res.json();
-        const results = data.search_results;
+        const r = await res.json();
+        const results = r.search_results;
         results.forEach(r => {
             addSearchResult(r.doc.title, r.doc.description, r.doc.url);
         });
