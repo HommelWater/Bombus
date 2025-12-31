@@ -576,9 +576,9 @@ function addPosts(posts) {
     }
     //Set scrollheight to bottom to display new messages.
     if (wasAtBottom) {
-        container.scrollTop = container.scrollHeight;
-        wrapper.querySelectorAll('.chat-post:last-of-type img').forEach(d=>d.addEventListener('load', container.scrollTop = container.scrollHeight));
-        wrapper.querySelectorAll('.chat-post:last-of-type video').forEach(d=>d.addEventListener('load', container.scrollTop = container.scrollHeight));
+        container.scrollTop = document.querySelector('#chat-window').scrollHeight;
+        wrapper.querySelectorAll('.chat-post:last-of-type img').forEach(d=>d.addEventListener('load', container.scrollTop = document.querySelector('#chat-window').scrollHeight));
+        wrapper.querySelectorAll('.chat-post:last-of-type video').forEach(d=>d.addEventListener('load', container.scrollTop = document.querySelector('#chat-window').scrollHeight));
     }
 }
 
