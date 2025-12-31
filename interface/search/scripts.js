@@ -29,7 +29,7 @@ async function search(e){
     data.query = document.getElementById("search-input").value;
     data.session_token = localStorage.getItem("session");
     try {
-        const res = await fetch('search/query', {
+        const res = await fetch('/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
