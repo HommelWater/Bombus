@@ -577,7 +577,7 @@ function addPosts(posts) {
             const scrollToBottom = () => {
                 container.scrollTop = container.scrollHeight;
             };
-            container.scrollTop = document.querySelector('#chat-window').scrollHeight;
+            container.scrollTop = container.scrollHeight;
             wrapper.querySelectorAll('.chat-post:last-of-type img').forEach(d=>d.addEventListener('load', scrollToBottom));
             wrapper.querySelectorAll('.chat-post:last-of-type video').forEach(d=>d.addEventListener('load', scrollToBottom));
         }
