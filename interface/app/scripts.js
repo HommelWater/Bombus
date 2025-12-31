@@ -17,7 +17,6 @@ const state = {
 };
 let current_text_channel = -1;
 let current_voice_channel = -1;
-
 //Helper
 function isVisible(elem) {
     if (!elem) return false;
@@ -573,10 +572,13 @@ function addPosts(posts) {
         } else {
             container.insertBefore(wrapper, container.firstChild);
         }
+        //get post, get image if there is one, add event listener to wait
     }
     //Set scrollheight to bottom to display new messages.
     if (wasAtBottom) {
         container.scrollTop = container.scrollHeight;
+        wrapper.querySelectorAll('.chat-post:last-of-type img').forEach(d=>d.addEventListener('load', container.scrollTop = container.scrollHeight));
+        wrapper.querySelectorAll('.chat-post:last-of-type video').forEach(d=>d.addEventListener('load', container.scrollTop = container.scrollHeight));
     }
 }
 
