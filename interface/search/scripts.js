@@ -22,7 +22,8 @@ async function requestRecentlyIndexed(){
     });
 }
 
-async function search(){
+async function search(e){
+    e.preventDefault()
     const data = {};
     data.query = document.getElementById("search-input").value;
     data.session_token = localStorage.get("session");
@@ -63,7 +64,7 @@ function addSearchResult(title, description, url){
 }
 
 function addRecentlyIndexedPages(){
-    
+
 }
 
 function onLoad(){
