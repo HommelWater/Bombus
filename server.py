@@ -33,15 +33,18 @@ async def safe_call(func, data_dict):
         )
     user_id = data_dict.get("sender_user_id", data_dict.get("key"))
     async with state_lock:
-        last, rate = ema_tracking[user_id]
-        if last != 0:
-            interval = max((time.time() - last) / 60.0, 1e-10)
-            alpha = math.exp(-interval)
+        now = time.time()
+        last, old_rate = ema_tracking[user_id]
+        if last == 0:
+            rate = 0.0
+        else:
+            interval = max((now - last) / 60.0, 1e-10)
+            alpha  = math.exp(-interval)
             r_inst = 1.0 / interval
-            rate = (1 - alpha) * r_inst + alpha * rate
-            rate = max(rate, 1.0 / interval)
+            rate   = (1 - alpha) * r_inst + alpha * old_rate
+            rate   = min(rate, MAX_REQUESTS_PER_MINUTE)
 
-        ema_tracking[user_id] = (time.time(), rate)
+        ema_tracking[user_id] = (now, rate)
     if rate <= MAX_REQUESTS_PER_MINUTE:
         return await func(**filtered_data)
     else:
