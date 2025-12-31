@@ -162,4 +162,7 @@ body {
     #search-body{
         margin:0px;
     }
+    #header {
+        display:none;
+    }
 }
