@@ -26,23 +26,22 @@ async function search(e){
     e.preventDefault()
     const data = {};
     data.query = document.getElementById("search-input").value;
-    data.session_token = localStorage.get("session");
+    data.session_token = localStorage.getItem("session");
     try {
         const res = await fetch('search/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
     });
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
-        return data;
+        const results = data.search_results;
+        results.forEach(r => {
+            addSearchResult(r.doc.title, r.doc.description, r.doc.url);
+        });
     } catch (e) {
         console.error(e);
     }
-    const results = res.json().search_results;
-    results.array.forEach(r => {
-        addSearchResult(r.doc.title, r.doc.description, r.doc.url);
-    });
 }
 
 function addSearchResult(title, description, url){
@@ -68,5 +67,5 @@ function addRecentlyIndexedPages(){
 }
 
 function onLoad(){
-    document.getElementById('search-button').addEventListener('click', search);
+    document.getElementById('search-button').addEventListener('submit', search);
 }
