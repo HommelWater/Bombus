@@ -67,5 +67,5 @@ function addRecentlyIndexedPages(){
 }
 
 function onLoad(){
-    document.getElementById('search-button').addEventListener('submit', search);
+    document.getElementById('search-form').addEventListener('submit', search);
 }
