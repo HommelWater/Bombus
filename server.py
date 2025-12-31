@@ -104,15 +104,15 @@ class IndexRequest(BaseModel):
 
 @app.post("/search")
 async def s(request_data: SearchRequest):
-    return search.search(request_data.session_token, request_data.query)
+    return await search.search(request_data.session_token, request_data.query)
 
 @app.post("/search/recent")
 async def s(request_data: RecentIndexRequest):
-    return search.recently_indexed(request_data.session_token)
+    return await search.recently_indexed(request_data.session_token)
 
 @app.post("/index")
 async def s(request_data: IndexRequest):
-    return search.index_webpage(request_data.session_token, request_data.url, request_data.title, request_data.image_base64)
+    return await search.index_webpage(request_data.session_token, request_data.url, request_data.title, request_data.image_base64)
 
 
 # File API
