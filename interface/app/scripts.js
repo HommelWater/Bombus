@@ -467,10 +467,10 @@ function formatPostContent(raw) {
     (_, hash, fname) => {
       const ext = fname.split('.').pop()?.toLowerCase();
       if (imageExts.has(ext)) {
-        return `<img class="media-upload" src="./files/${hash}" alt="${fname}" loading="lazy">`;
+        return `<img class="media-upload" src="./files/${hash}" alt="${fname}" loading="eager">`;
       }
       if (videoExts.has(ext)) {
-        return `<video class="media-upload" src="./files/${hash}" controls loading="lazy"></video>`;
+        return `<video class="media-upload" src="./files/${hash}" controls loading="eager"></video>`;
       }
       return `<a class="file-link" href="./files/${hash}" download="${fname}" target="_blank" rel="noopener noreferrer">💾 ${fname}</a>`;
     }
