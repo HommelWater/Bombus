@@ -13,7 +13,7 @@ MAX_REQUESTS_PER_MINUTE = 50
 ema_tracking = defaultdict(lambda: (0, 0.0))
 state_lock = asyncio.Lock()
 
-def safe_call(func, data_dict):
+async def safe_call(func, data_dict):
     sig = inspect.signature(func)
     expected_params = list(sig.parameters.keys())
     
@@ -32,7 +32,7 @@ def safe_call(func, data_dict):
             f"Expected: {expected_params}. Provided: {list(data_dict.keys())}"
         )
     user_id = data_dict.get("sender_user_id", data_dict.get("key"))
-    with state_lock:
+    async with state_lock:
         last, rate = ema_tracking[user_id]
         if last != 0:
             interval = max((time.time() - last) / 60.0, 1e-10)
