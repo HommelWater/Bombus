@@ -20,24 +20,22 @@ class TantivySearchIndex:
         schema_builder.add_text_field("url", stored=True, tokenizer_name="raw")
         schema_builder.add_unsigned_field("timestamp", stored=True, indexed=True)
         schema_builder.add_unsigned_field("id", stored=True, indexed=False)
+        schema_builder.add_unsigned_field("user_id", stored=True, indexed=False)
         self.schema = schema_builder.build()
         os.makedirs(index_path, exist_ok=True)
         self.index = tantivy.Index(self.schema, path=index_path)
         #self.index.tokenizers().register("en_stem", tantivy.tokenizer("en_stem"))
         self.searcher = self.index.searcher()
+        self.recently_indexed_cache = []
+        self.cache_ptr = 0
+        self.cache_size = 15
     
     def add_index(self, info):
         writer = self.index.writer()
-        
-        writer.add_document(tantivy.Document(
-            title=info['title'],
-            description=info["description"],
-            direct_keywords=' '.join(info.get('direct_keywords', [])),
-            related_keywords=' '.join(info.get('related_keywords', [])),
-            url=info['url'],
-            timestamp=time.time_ns(),
-            id=int(hashlib.sha256(info['url'].encode()).hexdigest()[:16], 16) % (2**64)
-        ))
+        doc = tantivy.Document.from_dict(info)
+        writer.add_document(doc)
+        self.recently_indexed_cache[self.cache_ptr % self.cache_size] = info
+        self.cache_ptr+=1
         
         writer.commit()
         writer.wait_merging_threads()
@@ -56,7 +54,7 @@ class TantivySearchIndex:
             doc = self.searcher.doc(doc_addr)
             results.append({
                 'score': score,
-                'doc': json.loads(doc)
+                'doc': doc.to_dict()
             })
         return results
 
@@ -119,11 +117,12 @@ async def index_webpage(session_token, url, title, image_base64_png):
     info = {
             'title': result_data.get('title', title),
             'description': result_data.get('description', ''),
-            'direct_keywords': result_data.get('direct_keywords', []),
-            'related_keywords': result_data.get('related_keywords', []),
+            'direct_keywords': ' '.join(result_data.get('direct_keywords', [])),
+            'related_keywords': ' '.join(result_data.get('related_keywords', [])),
             'url': url,
             'timestamp': time.time_ns(),
-            'user_id': sender_user_id
+            'user_id': sender_user_id,
+            'id':int(hashlib.sha256(url.encode()).hexdigest()[:16], 16) % (2**64)
         }
     ttv.add_index(info)
     
@@ -133,3 +132,9 @@ async def search(session_token, query):
     if not session:
         raise HTTPException(status_code=404, detail="unknown session token")
     return ttv.search(query, 15)
+
+async def recently_indexed(session_token):
+    session = await database.get_session(session_token)
+    if not session:
+        raise HTTPException(status_code=404, detail="unknown session token")
+    return ttv.recently_indexed_cache

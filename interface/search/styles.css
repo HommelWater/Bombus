@@ -87,6 +87,7 @@ body {
 
 .search-result:hover {
     background: var(--color-button-h);
+    cursor:pointer;
 }
 
 .result-title {
