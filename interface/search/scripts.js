@@ -17,6 +17,7 @@ async function requestRecentlyIndexed(){
         console.error(e);
     }
     const results = res.json().recently_indexed;
+    document.getElementById("search-results").innerHTML = results.length > 0 ? "" : "No recently indexed pages.";
     results.array.forEach(r => {
         addSearchResult(r.doc.title, r.doc.description, r.doc.url);
     });
@@ -68,6 +69,7 @@ function addRecentlyIndexedPages(){
 
 }
 
-function onLoad(){
+async function onLoad(){
     document.getElementById('search-form').addEventListener('submit', search);
+    await requestRecentlyIndexed();
 }
