@@ -114,15 +114,15 @@ async def index_webpage(session_token, url, title, image_base64_png):
         raise HTTPException(500, f"Failed to parse Gemini response: {e}")
     
     info = {
-            'title': result_data.get('title', title),
-            'description': result_data.get('description', ''),
-            'direct_keywords': ' '.join(result_data.get('direct_keywords', [])),
-            'related_keywords': ' '.join(result_data.get('related_keywords', [])),
-            'url': url,
-            'timestamp': time.time_ns(),
-            'user_id': sender_user_id,
-            'id':int(hashlib.sha256(url.encode()).hexdigest()[:16], 16) % (2**64)
-        }
+        'title': result_data.get('title', title),
+        'description': result_data.get('description', ''),
+        'direct_keywords': ' '.join(result_data.get('direct_keywords', [])),
+        'related_keywords': ' '.join(result_data.get('related_keywords', [])),
+        'url': url,
+        'timestamp': int(time.time()),          # ← changed from time.time_ns()
+        'user_id': sender_user_id,
+        'id': int(hashlib.sha256(url.encode()).hexdigest()[:16], 16) % (2**64)
+    }
     ttv.add_index(info)
     
     
