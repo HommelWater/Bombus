@@ -62,8 +62,9 @@ EOF
     sudo tee -a /etc/turnserver.conf > /dev/null <<EOF
 cert=/etc/letsencrypt/live/${DOMAIN}/fullchain.pem
 pkey=/etc/letsencrypt/live/${DOMAIN}/privkey.pem
+min-port=49152
+max-port=65535
 EOF
-    sudo systemctl start coturn
   fi
 }
 
@@ -73,15 +74,26 @@ enable_service(){
   sudo systemctl enable coturn --now
 }
 
-write_env(){
-  ENV_FILE=.env
-  echo -e "${GREEN}* Writing FastAPI env file → ${YELLOW}${ENV_FILE}${NC}"
-  cat >> "$ENV_FILE" <<EOF
-# source this file or export before starting FastAPI
-TURN_SECRET=${SECRET}
-TURN_HOST=${DOMAIN:-${PUBLIC_IP}}
-EOF
-  chmod 600 "$ENV_FILE"
+write_env() {
+    ENV_FILE=".env"
+    echo -e "${GREEN}* Updating ${YELLOW}${ENV_FILE}${NC} with TURN credentials"
+
+    # Create file if it doesn't exist
+    touch "$ENV_FILE"
+
+    # Use awk to update or append the two variables
+    awk -v secret="$SECRET" -v host="${DOMAIN:-$PUBLIC_IP}" '
+        BEGIN { updated_secret=0; updated_host=0 }
+        /^TURN_SECRET=/ { print "TURN_SECRET=" secret; updated_secret=1; next }
+        /^TURN_HOST=/   { print "TURN_HOST=" host;   updated_host=1; next }
+        { print }
+        END {
+            if (!updated_secret) print "TURN_SECRET=" secret
+            if (!updated_host)   print "TURN_HOST=" host
+        }
+    ' "$ENV_FILE" > "$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
+
+    chmod 600 "$ENV_FILE"
 }
 
 show_creds(){
