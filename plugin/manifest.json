@@ -16,5 +16,13 @@
   "browser_action": {
     "default_popup": "popup.html",
     "default_title": "Index this page"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "hommelwater@gmail.com",
+      "data_collection_permissions": {
+        "required": ["authenticationInfo", "websiteContent"]
+      }
+    }
   }
 }

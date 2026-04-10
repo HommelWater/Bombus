@@ -54,9 +54,17 @@ document.getElementById('indexBtn').addEventListener('click', () => {
 });
 
 function showStatus(elementId, message, type) {
-  const el = document.getElementById(elementId);
-  el.innerHTML = `<div class="status ${type}">${message}</div>`;
-  setTimeout(() => {
-    if (el.innerHTML.includes(message)) el.innerHTML = '';
-  }, 3000);
+    const el = document.getElementById(elementId);
+    el.innerHTML = '';
+    
+    const statusDiv = document.createElement('div');
+    statusDiv.className = `status ${type}`;
+    statusDiv.textContent = message;
+    el.appendChild(statusDiv);
+    
+    setTimeout(() => {
+        if (el.firstChild === statusDiv) {
+            el.removeChild(statusDiv);
+        }
+    }, 3000);
 }
