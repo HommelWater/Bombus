@@ -14,6 +14,8 @@ die()  { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 
 render_template() {
     local template="$1" output="$2"
+    # Ensure variables are exported for envsubst
+    export SERVICE_NAME DOMAIN PORT USER PWD
     envsubst '$SERVICE_NAME $DOMAIN $PORT $USER $PWD' < "$template" > "$output"
     log "Created $output"
 }
@@ -22,7 +24,7 @@ render_template() {
 create_http_config() {
     local template="$1" output="$2"
     local temp_full="/tmp/${SERVICE_NAME}.full.conf"
-    envsubst '$SERVICE_NAME $DOMAIN $PORT $USER $PWD' < "$template" > "$temp_full"
+    render_template "$template" "$temp_full"   # uses the fixed render_template
     
     awk '
         /^server \{/ { in_server=1; is_https=0; block="" }
@@ -103,6 +105,13 @@ setup_certificate() {
 update_packages
 setup_python_env
 request_info
+
+# Export variables needed for envsubst
+export SERVICE_NAME DOMAIN PORT
+# USER and PWD are also needed; set them explicitly
+export USER="${USER:-$(whoami)}"
+export PWD="${PWD:-$(pwd)}"
+
 create_dotenv
 
 # 1. Create systemd service (app not started yet)
