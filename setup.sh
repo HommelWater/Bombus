@@ -18,10 +18,31 @@ render_template() {
     log "Created $output"
 }
 
+# Extract only the HTTP (port 80) server block from the full template
+create_http_config() {
+    local template="$1" output="$2"
+    local temp_full="/tmp/${SERVICE_NAME}.full.conf"
+    envsubst '$SERVICE_NAME $DOMAIN $PORT $USER $PWD' < "$template" > "$temp_full"
+    
+    awk '
+        /^server \{/ { in_server=1; is_https=0; block="" }
+        in_server {
+            block = block $0 "\n"
+            if ($0 ~ /listen .*443/) is_https=1
+            if ($0 == "}") {
+                if (!is_https) print block
+                in_server=0
+            }
+            next
+        }
+        { print }
+    ' "$temp_full" > "$output"
+}
+
 update_packages() {
     log "Updating system packages"
     sudo apt-get update -qq
-    sudo apt-get install -y python3 python3-venv nginx certbot python3-certbot-nginx perl
+    sudo apt-get install -y python3 python3-venv nginx certbot perl
     git pull || warn "Could not pull – working with existing code"
 }
 
@@ -44,12 +65,20 @@ setup_python_env(){
     pip install -q fastapi uvicorn websockets pyotp pillow aiosqlite python-dotenv pywebpush aiofiles google-genai tantivy
 }
 
-create_config_files(){
-    render_template templates/service.template "/tmp/${SERVICE_NAME}.service"
-    sudo mv "/tmp/${SERVICE_NAME}.service" /etc/systemd/system/
-    render_template templates/nginx.template "/tmp/${SERVICE_NAME}.conf"
-    sudo mv "/tmp/${SERVICE_NAME}.conf" /etc/nginx/sites-available/
+# Create only the HTTP nginx config (no SSL references)
+create_http_site_config(){
+    local http_config="/tmp/${SERVICE_NAME}.http.conf"
+    create_http_config "templates/nginx.template" "$http_config"
+    sudo cp "$http_config" "/etc/nginx/sites-available/${SERVICE_NAME}"
     SITE_FILE="/etc/nginx/sites-available/${SERVICE_NAME}"
+    log "Created HTTP-only nginx config"
+}
+
+# Replace with full SSL config after certificate exists
+install_full_nginx_config() {
+    render_template "templates/nginx.template" "/tmp/${SERVICE_NAME}.full.conf"
+    sudo cp "/tmp/${SERVICE_NAME}.full.conf" "/etc/nginx/sites-available/${SERVICE_NAME}"
+    log "Replaced with full SSL config"
 }
 
 create_dotenv(){
@@ -63,22 +92,39 @@ EOF
 }
 
 setup_certificate() {
-    log "Obtaining SSL certificate for $DOMAIN using webroot"
+    log "Obtaining SSL certificate for $DOMAIN using webroot (zero downtime)"
     sudo mkdir -p /var/www/certbot
     sudo certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
         --non-interactive --agree-tos -m "admin@${DOMAIN}" || die "Certbot failed"
 }
 
+# ------------------------------------------------------------------
+# Main execution
 update_packages
 setup_python_env
 request_info
 create_dotenv
-create_config_files
+
+# 1. Create systemd service (app not started yet)
+render_template templates/service.template "/tmp/${SERVICE_NAME}.service"
+sudo mv "/tmp/${SERVICE_NAME}.service" /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now ${SERVICE_NAME}
+
+# 2. Set up HTTP-only nginx site (no SSL, serves webroot for certbot)
+create_http_site_config
 sudo ln -sf "$SITE_FILE" /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx || die "Nginx HTTP config invalid"
+
+# 3. Obtain SSL certificate via webroot (Nginx already serves .well-known)
 setup_certificate
-sudo nginx -t && sudo systemctl reload nginx || die "Nginx config invalid"
+
+# 4. Replace with full SSL nginx config (certificate now exists)
+install_full_nginx_config
+sudo nginx -t && sudo systemctl reload nginx || die "Nginx SSL config invalid"
+
+# 5. Start the application service
+sudo systemctl enable --now "${SERVICE_NAME}"
+
 log "Done – your app is live at https://${DOMAIN}/"
-sudo journalctl -u ${SERVICE_NAME} -f
+sudo journalctl -u "${SERVICE_NAME}" -f
