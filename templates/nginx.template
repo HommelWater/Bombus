@@ -2,6 +2,7 @@
 # 10 req/s per IP for general access (adjust based on activity heartbeats)
 limit_req_zone $binary_remote_addr zone=ws_connect:10m rate=5r/s;  # Stricter for WS connections
 limit_req_zone $binary_remote_addr zone=file_download:10m rate=20r/m;  # File retrieval
+limit_req_zone $binary_remote_addr zone=global:10m rate=10r/s;      # <-- ADDED for general pages
 limit_conn_zone $binary_remote_addr zone=per_ip:10m;
 limit_conn_zone $server_name zone=per_server:10m;
 
@@ -48,8 +49,7 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 1d;
+    # REMOVED: ssl_session_cache and ssl_session_timeout (already in options-ssl-nginx.conf)
 
     # Connection Limits
     limit_conn per_server 500;          # Max total connections
