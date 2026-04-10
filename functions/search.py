@@ -18,7 +18,7 @@ class TantivySearchIndex:
         schema_builder.add_text_field("direct_keywords", stored=True)
         schema_builder.add_text_field("related_keywords", stored=True)
         schema_builder.add_text_field("url", stored=True, tokenizer_name="raw")
-        schema_builder.add_unsigned_field("timestamp", stored=True, indexed=True)
+        schema_builder.add_integer_field("timestamp", stored=True, indexed=True)
         schema_builder.add_unsigned_field("id", stored=True, indexed=False)
         schema_builder.add_unsigned_field("user_id", stored=True, indexed=False)
         self.schema = schema_builder.build()
@@ -119,7 +119,7 @@ async def index_webpage(session_token, url, title, image_base64_png):
         'direct_keywords': ' '.join(result_data.get('direct_keywords', [])),
         'related_keywords': ' '.join(result_data.get('related_keywords', [])),
         'url': url,
-        'timestamp': int(time.time()),          # ← changed from time.time_ns()
+        'timestamp': int(time.time()),
         'user_id': sender_user_id,
         'id': int(hashlib.sha256(url.encode()).hexdigest()[:16], 16) % (2**64)
     }
