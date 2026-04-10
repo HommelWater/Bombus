@@ -26,9 +26,9 @@ class TantivySearchIndex:
         self.index = tantivy.Index(self.schema, path=index_path)
         #self.index.tokenizers().register("en_stem", tantivy.tokenizer("en_stem"))
         self.searcher = self.index.searcher()
-        self.recently_indexed_cache = []
-        self.cache_ptr = 0
         self.cache_size = 15
+        self.recently_indexed_cache = [None] * self.cache_size
+        self.cache_ptr = 0
     
     def add_index(self, info):
         writer = self.index.writer()
@@ -81,7 +81,7 @@ async def index_webpage(session_token, url, title, image_base64_png):
     """
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash", 
+            model="gemini-2.5-flash-lite", 
             contents=[
                 types.Part.from_bytes(
                     data=base64.b64decode(image_base64_png),
