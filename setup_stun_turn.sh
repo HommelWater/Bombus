@@ -54,20 +54,20 @@ no-multicast-peers
 no-cli
 syslog
 EOF
-  if [[ -n "$DOMAIN" ]]; then
-      echo -e "${GREEN}* Obtaining Let’s-Encrypt cert using webroot…${NC}"
-      sudo mkdir -p /var/www/certbot
-      sudo certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
-          --agree-tos --email "admin@${DOMAIN}" -n || die "Certbot failed"
-      
-      # Append cert paths to turnserver.conf
-      sudo tee -a /etc/turnserver.conf > /dev/null <<EOF
-  cert=/etc/letsencrypt/live/${DOMAIN}/fullchain.pem
-  pkey=/etc/letsencrypt/live/${DOMAIN}/privkey.pem
-  min-port=49152
-  max-port=65535
-  EOF
-  fi
+if [[ -n "$DOMAIN" ]]; then
+    echo -e "${GREEN}* Obtaining Let’s-Encrypt cert using webroot…${NC}"
+    sudo mkdir -p /var/www/certbot
+    sudo certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
+        --agree-tos --email "admin@${DOMAIN}" -n || die "Certbot failed"
+    
+    # Append cert paths to turnserver.conf
+    sudo tee -a /etc/turnserver.conf > /dev/null <<EOF
+cert=/etc/letsencrypt/live/${DOMAIN}/fullchain.pem
+pkey=/etc/letsencrypt/live/${DOMAIN}/privkey.pem
+min-port=49152
+max-port=65535
+EOF
+fi
 }
 
 enable_service(){
