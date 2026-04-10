@@ -64,7 +64,6 @@ server {
     
     # Hide backend fingerprints
     proxy_hide_header X-Powered-By;
-    more_clear_headers Server;  # Requires nginx-extras
 
     # Request Size Limits
     client_body_buffer_size 128k;
