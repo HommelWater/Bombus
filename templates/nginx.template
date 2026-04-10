@@ -100,23 +100,8 @@ server {
     }
 
     # Static Content - App Pages
-    location = / {
+    location ~ ^/(|auth|search|index|search/recent)$ {
         limit_req zone=global burst=10 nodelay;
-        
-        proxy_pass http://127.0.0.1:${PORT};
-        include /etc/nginx/proxy_params;
-    }
-
-    location = /auth {
-        limit_req zone=global burst=5 nodelay;
-        
-        proxy_pass http://127.0.0.1:${PORT};
-        include /etc/nginx/proxy_params;
-    }
-
-    location = /search {
-        limit_req zone=global burst=10 nodelay;
-        
         proxy_pass http://127.0.0.1:${PORT};
         include /etc/nginx/proxy_params;
     }
