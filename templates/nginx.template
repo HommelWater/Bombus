@@ -107,7 +107,7 @@ server {
     }
 
     # Static Files (JS, CSS, etc.)
-    location ~* \.(js|css|png|jpg|jpeg|svg|woff|woff2|ttf|ico)$ {
+    location ~* \.(js|css|png|jpg|jpeg|svg|woff|woff2|ttf|ico|webp)$ {
         # High burst for static assets
         limit_req zone=global burst=50 nodelay;
         
