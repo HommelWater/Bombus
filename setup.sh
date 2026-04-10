@@ -63,9 +63,10 @@ EOF
 }
 
 setup_certificate() {
-    if ! sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "admin@${DOMAIN}"; then
-        die "Certbot failed"
-    fi
+    log "Obtaining SSL certificate for $DOMAIN using webroot"
+    sudo mkdir -p /var/www/certbot
+    sudo certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
+        --non-interactive --agree-tos -m "admin@${DOMAIN}" || die "Certbot failed"
 }
 
 update_packages
