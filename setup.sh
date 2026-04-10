@@ -14,9 +14,8 @@ die()  { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 
 render_template() {
     local template="$1" output="$2"
-    # Ensure variables are exported for envsubst
-    export SERVICE_NAME DOMAIN PORT USER PWD
-    envsubst '$SERVICE_NAME $DOMAIN $PORT $USER $PWD' < "$template" > "$output"
+    export SERVICE_NAME DOMAIN PORT USER PWD APP_NAME
+    envsubst '$SERVICE_NAME $DOMAIN $PORT $USER $PWD $APP_NAME' < "$template" > "$output"
     log "Created $output"
 }
 
