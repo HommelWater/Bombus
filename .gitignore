@@ -1,6 +1,9 @@
 #db
 data.db
 
+#search
+tantivy_index/
+
 #files
 interface/files
 
