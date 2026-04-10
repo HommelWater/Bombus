@@ -60,7 +60,9 @@ function addSearchResult(title, description, url){
     resultDescription.innerText = description;
 
     result.replaceChildren(resultHeader, resultDescription);
-    result.addEventListener('click', window.open(url, '_blank').focus());
+    result.addEventListener('click', () => {
+        window.open(url, '_blank').focus();
+    });
     resultsElement.appendChild(result);
 }
 
