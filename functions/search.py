@@ -57,6 +57,20 @@ class TantivySearchIndex:
                 'doc': doc.to_dict()
             })
         return {"search_results":results}
+    
+    def get_recently_indexed(self):
+        """Return list of recently indexed items, newest first."""
+        cache = self.recently_indexed_cache
+        ptr = self.cache_ptr
+        size = self.cache_size
+        result = []
+        for i in range(size):
+            idx = (ptr - 1 - i) % size   # start from most recent, go backwards
+            item = cache[idx]
+            if item is None:
+                break                     # no older items beyond this point
+            result.append(item)
+        return result
 
 
 client = genai.Client()
@@ -137,4 +151,4 @@ async def recently_indexed(session_token):
     session = await database.get_session(session_token)
     if not session:
         raise HTTPException(status_code=404, detail="unknown session token")
-    return {"recently_indexed": ttv.recently_indexed_cache}
+    return {"recently_indexed": ttv.get_recently_indexed()}

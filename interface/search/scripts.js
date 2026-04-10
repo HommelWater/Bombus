@@ -14,7 +14,7 @@ async function requestRecentlyIndexed(){
         const results = r.recently_indexed;
 
         document.getElementById("newly-indexed-content").innerHTML = results.length > 0 ? "" : "No recently indexed pages found.";
-        results.forEach(r => {
+        results.reverse().forEach(r => {
             addRecentlyIndexed(r.title, r.description, r.url);
         });
     } catch (e) {
