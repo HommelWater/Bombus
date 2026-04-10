@@ -49,6 +49,7 @@ create_config_files(){
     sudo mv "/tmp/${SERVICE_NAME}.service" /etc/systemd/system/
     render_template templates/nginx.template "/tmp/${SERVICE_NAME}.conf"
     sudo mv "/tmp/${SERVICE_NAME}.conf" /etc/nginx/sites-available/
+    SITE_FILE="/etc/nginx/sites-available/${SERVICE_NAME}"
 }
 
 create_dotenv(){
@@ -56,23 +57,14 @@ create_dotenv(){
 APP_NAME='${APP_NAME}'
 SERVICE_NAME='${SERVICE_NAME}'
 DOMAIN='${DOMAIN}'
+PORT='${PORT}'
 GEMINI_API_KEY='${GEMINI_API_KEY}'
 EOF
 }
 
-setup_certificate(){
-    CERT_PATH="/etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
-    if [[ ! -f "$CERT_PATH" ]]; then
-        log "Obtaining SSL certificate"
-        sudo mkdir -p /var/www/certbot
-        sudo chown www-data:www-data /var/www/certbot
-        sudo certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
-            --non-interactive --agree-tos -m "admin@${DOMAIN}" || \
-            die "Certbot failed"
-    fi
-    if ! grep -q "listen 443 ssl" "$SITE_FILE"; then
-        log "Enabling HTTPS redirect"
-        sudo certbot --nginx -d "$DOMAIN" --non-interactive --redirect
+setup_certificate() {
+    if ! sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "admin@${DOMAIN}"; then
+        die "Certbot failed"
     fi
 }
 
