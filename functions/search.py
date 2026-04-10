@@ -40,6 +40,7 @@ class TantivySearchIndex:
         writer.commit()
         writer.wait_merging_threads()
         self.index.reload()
+        self.searcher = self.index.searcher()
     
     def search(self, query: str, top_k=10):
         q = self.index.parse_query(
