@@ -9,6 +9,7 @@ function toggleTheme(increment) {
         return;
     }
     document.cookie = `theme=${newIndex}; path=/; SameSite=Lax; Max-Age=${30*24*60*60}`;
+    localStorage.setItem("theme", "${newIndex}");
     themes.forEach(theme => document.documentElement.classList.remove(theme));
     document.documentElement.classList.add(themes[newIndex]);
 }
