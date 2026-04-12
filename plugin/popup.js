@@ -4,8 +4,52 @@ document.addEventListener('DOMContentLoaded', () => {
     if (response && response.url) {
       document.getElementById('apiUrl').value = response.url;
     }
+    init_themes();
   });
 });
+
+let themes = []
+
+function toggleTheme(increment) {
+    const currentIndex = get_theme_id();
+    const newIndex = (currentIndex + increment) % themes.length;
+    if (document.documentElement.classList.contains(themes[newIndex])) {
+        return;
+    }
+    themes.forEach(theme => document.documentElement.classList.remove(theme));
+    document.documentElement.classList.add(themes[newIndex]);
+}
+
+function get_theme_id() {
+    return parseInt(localStorage.getItem("themeId"));
+}
+
+function getThemesFromCSS() {
+    const themeNames = [];
+    for (const sheet of document.styleSheets) {
+        try {
+            for (const rule of sheet.cssRules) {
+                if (rule.selectorText && rule.selectorText.startsWith("html.")) {
+                    const name = rule.selectorText.split(".")[1];
+                    if (name && !themeNames.includes(name)) {
+                        themeNames.push(name);
+                    }
+                }
+            }
+        } catch (e) {
+        }
+    }
+    return themeNames;
+}
+
+function init_themes(){
+    themes = getThemesFromCSS();
+    const btn = document.getElementById("theme-toggle-button");
+    if(btn){
+        btn.addEventListener('click', ()=>toggleTheme(1));
+    }
+    toggleTheme(0)
+}
 
 // Save API URL
 document.getElementById('saveApiBtn').addEventListener('click', () => {

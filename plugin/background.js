@@ -52,7 +52,6 @@ async function saveTheme(theme_id) {
   }
 }
 
-
 // Auto‑capture session token when visiting backend
 async function tryCaptureSessionToken(tabId, url) {
   try {
@@ -98,13 +97,11 @@ async function tryCaptureTheme(tabId, url) {
     });
     const token = results && results[0];
     if (token) {
-      await saveSessionToken(token);
-      browser.browserAction.setBadgeText({ text: '✓' });
-      setTimeout(() => browser.browserAction.setBadgeText({ text: '' }), 2000);
-      console.log('Session token captured');
+      await saveTheme(token);
+      console.log('Theme captured');
     }
   } catch (err) {
-    console.warn('tryCaptureSessionToken error:', err);
+    console.warn('tryCaptureTheme error:', err);
   }
 }
 
@@ -112,6 +109,7 @@ async function tryCaptureTheme(tabId, url) {
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
     tryCaptureSessionToken(tabId, tab.url).catch(console.error);
+    tryCaptureTheme(tabId, tab.url).catch(console.error);
   }
 });
 
