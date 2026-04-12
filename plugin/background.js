@@ -42,16 +42,6 @@ async function saveSessionToken(token) {
   }
 }
 
-async function saveTheme(theme_id) {
-  try {
-    await browser.storage.local.set({ themeId: theme_id });
-    return true;
-  } catch (err) {
-    console.error('saveTheme error:', err);
-    return false;
-  }
-}
-
 // Auto‑capture session token when visiting backend
 async function tryCaptureSessionToken(tabId, url) {
   try {
@@ -80,36 +70,11 @@ async function tryCaptureSessionToken(tabId, url) {
   }
 }
 
-async function tryCaptureTheme(tabId, url) {
-  try {
-    const apiUrl = await getApiUrl();
-    if (!apiUrl) return;
-
-    let apiOrigin, tabOrigin;
-    try {
-      apiOrigin = new URL(apiUrl).origin;
-      tabOrigin = new URL(url).origin;
-    } catch(e) { return; }
-    if (apiOrigin !== tabOrigin) return;
-
-    const results = await browser.tabs.executeScript(tabId, {
-      code: `localStorage.getItem('theme') || null`
-    });
-    const token = results && results[0];
-    if (token) {
-      await saveTheme(token);
-      console.log('Theme captured');
-    }
-  } catch (err) {
-    console.warn('tryCaptureTheme error:', err);
-  }
-}
 
 // Listen for page loads
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
     tryCaptureSessionToken(tabId, tab.url).catch(console.error);
-    tryCaptureTheme(tabId, tab.url).catch(console.error);
   }
 });
 
