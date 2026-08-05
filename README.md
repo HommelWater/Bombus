@@ -40,12 +40,16 @@ WebRTC audio mesh (both receive the remote track).
 
 ## Running it
 
-Serve the folder with any static file server and open it in two browsers:
+Use the github pages here: https://hommelwater.github.io/Bombus
+Or serve the folder with any static file server and open it in two browsers:
 
 ```bash
 cd p2p
 python3 -m http.server 8080
 ```
+
+## Usage
+Visit the page, then:
 
 1. Pick a display name; leave the key field empty to generate a fresh identity
    (or paste an existing `nsec…`/hex key to keep your identity).
