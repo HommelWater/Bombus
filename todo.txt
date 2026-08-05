@@ -1,8 +1,0 @@
-Move to federated approach: disentangle frontend from backend, let the user choose what backend server to connect to via a simple hostname.
-Safety stuff: proper authentication, max username/channel name lengths.
-Improved permissions: Per channel user access, roles?
-Customization: Overhaul colors, layout, themes. Add per user profiles & personal pages.
-Improved VC: video chat (with screenshare).
-Chat: Links to specific messages + dynamic loading of newer messages. Encryption?
-Optional: Re-encoding of media.
-Image resizing on click inside of messages.

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widgets=resizes-content">
+    <link rel="icon" href="./images/main.png" type="image/png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bombus">
+    <link rel="apple-touch-icon" href="./images/icon-192.png">
+    <title>Bombus P2P</title>
+    <link rel="stylesheet" href="./shared/webkit.css">
+    <link rel="stylesheet" href="./app.css">
+    <link rel="stylesheet" href="./shared/themes.css">
+    <script type="module" src="./app.js"></script>
+    <script src="./shared/themes.js"></script>
+    <meta name="theme-color" content="#181818">
+    <style>
+        #login-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: var(--color-bg, #181818);
+            display: flex; align-items: center; justify-content: center;
+        }
+        #login-card {
+            display: flex; flex-direction: column; gap: 12px;
+            padding: 32px; border-radius: 12px;
+            background: var(--color-card, #222);
+            min-width: 320px; max-width: 90vw;
+        }
+        #login-card h2 { margin: 0; text-align: center; }
+        #login-card input { padding: 10px; border-radius: 6px; border: none; }
+        #login-card button { padding: 10px; border-radius: 6px; border: none; cursor: pointer; }
+        #login-error { color: #e06c75; min-height: 1em; text-align: center; }
+        .hint { opacity: 0.6; font-size: 0.85em; text-align: center; }
+        #my-npub { width: 100%; font-size: 0.75em; }
+    </style>
+    </head>
+    <body>
+    <div id="login-overlay">
+        <div id="login-card">
+            <img src="./images/main.png" style="width:96px;margin:0 auto;">
+            <h2>Bombus P2P</h2>
+            <input id="login-username" placeholder="Display name">
+            <input id="login-key" placeholder="nsec… key (leave empty to generate)">
+            <button id="login-button" class="btn">Enter</button>
+            <div id="login-error"></div>
+            <div class="hint">No server, no account — your key is your identity.<br>
+            To find others, share your npub and add theirs under Settings → Add Peer.</div>
+        </div>
+    </div>
+    <div id="container" class="container">
+        <div id ="sidebar-l" class="sidebar">
+            <img id="main-image" src="./images/main.png">
+            <div class="sidebar-items">
+                <div id="channels-header" class="sidebar-item-header"><h2>Channels</h2><h2>☰</h2></div>
+                <div id="channels"></div>
+            </div>
+        </div>
+        <div id="chat" class="card">
+            <div id="chat-header">
+                <div id="sidebar-button"><h3>☰</h3></div>
+                <h3 id="chat-header-text"></h3>
+                <div id="chat-header-search">
+                    <input id="search-bar" type="text" placeholder="Search...">
+                    <button id="search-button">🔍</button>
+                </div>
+            </div>
+            <div id="chat-window"></div>
+            <div id="chat-footer">
+                <div id="upload-indicator"></div>
+                <div id="message-box">
+                    <textarea id="user-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
+                    <div class="file-input">
+                        <label id="files-input-label" for="files-input">📁</label>
+                        <input type="file" id="files-input" multiple style="display:none">
+                    </div>
+                    <button id="send-button" class="btn up" style="display:none">Send</button>
+                </div>
+            </div>
+        </div>
+        <div id ="sidebar-r" class="sidebar">
+            <div class="sidebar-items">
+                <div id="settings-header" class="sidebar-item-header"><h2>Settings</h2><h2>☰</h2></div>
+                <div id="settings-content">
+                    <div class="sidebar-item">
+                        <button id="theme-toggle-button" class="btn left">Toggle Theme</button>
+                    </div>
+                    <div class="sidebar-item">
+                        <button id="rename-user" class="btn left">Change Display Name</button>
+                        <div id="rename-user-subitem" class="subitem" style="display:none">
+                            <input id="rename-username" placeholder="New display name">
+                            <button id="rename-user-button" class="btn right">Set</button>
+                        </div>
+                    </div>
+                    <div class="sidebar-item">
+                        <button id="change-pfp-button" class="btn left">Change Profile Picture</button>
+                        <input type="file" id="pfp-input" accept="image/*" style="display:none">
+                    </div>
+                    <div class="sidebar-item" style="flex-direction:column;gap:4px;">
+                        <label class="hint">Your npub (share this):</label>
+                        <input id="my-npub" readonly>
+                        <button id="copy-npub-button" class="btn left">Copy npub</button>
+                    </div>
+                    <div class="sidebar-item" style="flex-direction:column;gap:4px;">
+                        <label class="hint">Your nsec (keep secret — restores this account on another device):</label>
+                        <input id="my-nsec" type="password" readonly>
+                        <div style="display:flex;gap:4px;">
+                            <button id="reveal-nsec-button" class="btn left">Show</button>
+                            <button id="copy-nsec-button" class="btn left">Copy nsec</button>
+                        </div>
+                    </div>
+                    <div class="sidebar-item" style="flex-direction:column;gap:4px;">
+                        <div id="peer-status" class="hint">Not connected</div>
+                        <div class="subitem" style="display:flex">
+                            <input id="add-peer-input" placeholder="Add peer npub…">
+                            <button id="add-peer-button" class="btn right">Add</button>
+                        </div>
+                        <div id="add-peer-status" class="hint"></div>
+                    </div>
+                    <div class="sidebar-item">
+                        <button id="add-channel-button" class="btn left">Add Channel</button>
+                        <div id="add-channel-subitem" class="subitem" style="display:none">
+                            <input id="channel-name" placeholder="New channel name">
+                            <button id="add-channel-add-button" class="btn right">Add</button>
+                        </div>
+                    </div>
+                    <div class="sidebar-item">
+                        <div id="admin-badge" class="hint"></div>
+                    </div>
+                    <div class="sidebar-item">
+                        <button id="delete-channel-button" class="btn left">Delete Channel</button>
+                        <div id="delete-channel-subitem" class="subitem" style="display:none">
+                            <select id="delete-channel-name" class="dropdown"></select>
+                            <button id="delete-channel-delete-button" class="btn right">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-items">
+                <div id="users-header" class="sidebar-item-header"><h2>Users</h2><h2>☰</h2></div>
+                <div id="user-list"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Installable/offline shell (phones). Not required for the app to work.
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => { /* preview hosts without SW support */ });
+            });
+        }
+    </script>
+    </body>
+</html>

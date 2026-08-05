@@ -1,3 +1,0 @@
-rewrite this server in C (its just a simple crud backend, but easier to get into programming if people want to modify their server themselves. Also nice if people want to play with adding AI features.)
-Make it easier to access the database as a user. It needs to filter out sensitive info and return a DB file based on the users permissions.
-add better indexing in the DB.
