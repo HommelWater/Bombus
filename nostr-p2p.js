@@ -1,10 +1,10 @@
-import { getPublicKey, finalizeEvent } from './nostr-deps.js';
-import { SimplePool } from './nostr-deps.js';
-import { nip44 } from './nostr-deps.js';
-import { nip19 } from './nostr-deps.js';
-import { bytesToHex, hexToBytes } from './nostr-deps.js';
-import { schnorr } from './nostr-deps.js';
-import { sha256 } from './nostr-deps.js';
+import { getPublicKey, finalizeEvent } from './nostr-deps.js?v=10';
+import { SimplePool } from './nostr-deps.js?v=10';
+import { nip44 } from './nostr-deps.js?v=10';
+import { nip19 } from './nostr-deps.js?v=10';
+import { bytesToHex, hexToBytes } from './nostr-deps.js?v=10';
+import { schnorr } from './nostr-deps.js?v=10';
+import { sha256 } from './nostr-deps.js?v=10';
 
 function log(...args) {
     try { (window.__p2plog = window.__p2plog || []).push(Math.round(Date.now() / 1000) % 100000 + ' ' + args.join(' ')); } catch { /* ignore */ }
@@ -56,11 +56,35 @@ function resolveRelays(optionRelays) {
     return DEFAULT_RELAYS;
 }
 
+// ICE servers can be extended via options or localStorage 'nostr_p2p_turn'
+// (JSON object { urls, username?, credential? }), e.g. for a self-hosted
+// TURN server to connect through restrictive NATs/firewalls. The default
+// STUN entry is always kept; an explicit options.iceServers array replaces
+// the whole list.
+const DEFAULT_ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+
+function resolveIceServers(optionIce) {
+    if (optionIce && optionIce.length) return optionIce;
+    const ice = [...DEFAULT_ICE_SERVERS];
+    try {
+        const stored = (typeof localStorage !== 'undefined') && localStorage.getItem('nostr_p2p_turn');
+        if (stored) {
+            const turn = JSON.parse(stored);
+            if (turn && turn.urls) ice.push(turn);
+        }
+    } catch { /* fall through to defaults */ }
+    return ice;
+}
+
 // --- Timing knobs -----------------------------------------------------------
-const MAINTENANCE_INTERVAL = 15 * 1000;  // liveness + rotation tick
-const PENDING_TIMEOUT = 25 * 1000;       // give up on a handshake after this
+const MAINTENANCE_INTERVAL = 10 * 1000;  // liveness + rotation tick
+const PENDING_TIMEOUT = 25 * 1000;       // give up on an offered handshake
                                          // (leaves room for one offer re-send)
-const SILENCE_TIMEOUT = 50 * 1000;       // no inbound traffic => peer is gone
+const ANSWER_TIMEOUT = 18 * 1000;        // answering is one relay round-trip,
+                                         // but internet ICE checks need room;
+                                         // runs from last signal seen
+const SILENCE_TIMEOUT = 40 * 1000;       // no inbound traffic => peer is gone
+                                         // (pings every tick; ~3 missed = drop)
 
 // A session is the ONE source of truth for a peer relationship:
 //   { npub, peerPk, pc, channel, phase: 'connecting'|'connected',
@@ -72,6 +96,7 @@ export class NostrP2P {
         this.sk = hexToBytes(secretKeyHex);
         this.hex_sk = secretKeyHex;
         this.relays = resolveRelays(options.relays);
+        this.iceServers = resolveIceServers(options.iceServers);
         this.pk = getPublicKey(this.sk);
         this.npub = nip19.npubEncode(this.pk);
         this.pool = new SimplePool();
@@ -106,6 +131,8 @@ export class NostrP2P {
         // relay handshake, and relays drop subs.
         this._listenTimer = setInterval(() => this._subscribe(), 20 * 1000);
         this._maintenanceTimer = setInterval(() => this._maintenance(), MAINTENANCE_INTERVAL);
+        // Don't wait a full tick for the first connection attempts.
+        setTimeout(() => this._maintenance(), 1000);
     }
 
     // --- Public API ---------------------------------------------------------
@@ -217,7 +244,7 @@ export class NostrP2P {
 
     _createSession(npub, initiator, peerPk) {
         const pc = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            iceServers: this.iceServers
         });
         log(`[p2p] new session ${npub.slice(0, 12)} initiator=${initiator}`);
         const session = {
@@ -231,13 +258,21 @@ export class NostrP2P {
             connectedAt: 0,
             lastActivity: Date.now(),
             iceBuffer: [],
+            myCandidates: [],
             authSent: false
         };
         this.sessions.set(npub, session);
 
         pc.onicecandidate = (e) => {
             if (e.candidate && session.peerPk) {
-                this._sendSignal(session.peerPk, { type: 'ice-candidate', candidate: e.candidate.toJSON() });
+                // Trickle candidates are sent once and then forgotten — but the
+                // peer may not have a session for them yet (offer still in
+                // transit) or may have replaced it (glare). Keep them so the
+                // maintenance loop can re-trickle; one-sided candidate loss is
+                // survivable locally but often fatal across real NATs.
+                const c = e.candidate.toJSON();
+                session.myCandidates.push(c);
+                this._sendSignal(session.peerPk, { type: 'ice-candidate', candidate: c });
             }
         };
         pc.onconnectionstatechange = () => {
@@ -299,11 +334,10 @@ export class NostrP2P {
         const s = this._closeSession(npub);
         if (s) log(`[p2p] drop ${npub.slice(0, 12)} (${s.phase}) ${reason}`);
         if (s && s.phase === 'connected') this.onDisconnect?.(npub);
-        // A failed handshake is retried almost immediately, not at the next
-        // maintenance tick.
-        if (s && s.phase === 'connecting') {
-            setTimeout(() => this._maintenance(), 500);
-        }
+        // Any drop is retried almost immediately, not at the next maintenance
+        // tick: with few peers, waiting out the tick leaves the app peerless
+        // for no reason.
+        if (s) setTimeout(() => this._maintenance(), 500);
     }
 
     // --- Auth handshake -----------------------------------------------------
@@ -365,16 +399,31 @@ export class NostrP2P {
         for (const [npub, s] of Array.from(this.sessions)) {
             if (s.phase === 'connecting') {
                 // Handshake never completed – tear down; rotation may retry.
-                if (now - s.createdAt > PENDING_TIMEOUT) {
+                // Answering slots expire faster: they only need one relay
+                // round-trip, and a stale one (answering a replayed offer the
+                // peer has already moved on from) otherwise wedges reconnects
+                // for the full pending timeout. The clock runs from the last
+                // signal we saw, not session birth: slow ICE checks across
+                // the internet must not get a progressing handshake killed.
+                const timeout = s.initiator ? PENDING_TIMEOUT : ANSWER_TIMEOUT;
+                if (now - Math.max(s.createdAt, s.lastSignalAt || 0) > timeout) {
                     this._dropSession(npub, 'handshake timeout');
                     continue;
                 }
                 // Re-send the offer every tick until the handshake lands:
                 // publishes to relays can silently fail while sockets connect.
+                // Re-trickle our ICE candidates too — the peer's session may
+                // not have existed (or may have been replaced) when they were
+                // first sent, and lost candidates break real-world ICE.
                 if (s.initiator && s.pc.localDescription && s.offerTs) {
                     try {
                         this._sendSignal(s.peerPk, { type: 'offer', ots: s.offerTs, sdp: { type: s.pc.localDescription.type, sdp: s.pc.localDescription.sdp } });
+                        if (s.myCandidates.length) this._sendSignal(s.peerPk, { type: 'ice-candidates', candidates: s.myCandidates });
                     } catch { /* retry next tick */ }
+                } else if (!s.initiator && s.myCandidates.length && s.pc.localDescription) {
+                    // Answering side: our candidates may equally have been lost
+                    // before the offerer's answer-processing session existed.
+                    try { this._sendSignal(s.peerPk, { type: 'ice-candidates', candidates: s.myCandidates }); } catch { /* retry next tick */ }
                 }
                 continue;
             }
@@ -461,6 +510,9 @@ export class NostrP2P {
     // Serialize processing per peer: concurrent offer/answer handling races
     // corrupt RTCPeerConnection state.
     handleSignal(event) {
+        // Never signal with ourselves (same identity in a second tab, or
+        // accidentally self-added): it only corrupts handshake state.
+        if (event.pubkey === this.pk) return;
         const key = event.pubkey;
         const prev = this._signalQueues.get(key) || Promise.resolve();
         const next = prev.then(() => this._handleSignal(event)).catch(() => {});
@@ -485,6 +537,10 @@ export class NostrP2P {
         }
 
         let session = this.sessions.get(npub);
+        // Any inbound signal means the handshake is still progressing —
+        // real-world ICE/relay latency can exceed the bare timeouts, so a
+        // session may only be reaped after this much *quiet* time.
+        if (session) session.lastSignalAt = Date.now();
 
         if (payload.type === 'offer') {
             // ots identifies the handshake attempt (re-sends share it);
@@ -499,7 +555,10 @@ export class NostrP2P {
                 // answer may have been lost – send it again.
                 const s = this.sessions.get(npub);
                 if (s && !s.initiator && s.phase === 'connecting' && s.pc.localDescription) {
-                    try { await this._sendSignal(senderPk, { type: 'answer', sdp: { type: s.pc.localDescription.type, sdp: s.pc.localDescription.sdp } }); } catch { /* ignore */ }
+                    try {
+                        await this._sendSignal(senderPk, { type: 'answer', sdp: { type: s.pc.localDescription.type, sdp: s.pc.localDescription.sdp } });
+                        if (s.myCandidates.length) await this._sendSignal(senderPk, { type: 'ice-candidates', candidates: s.myCandidates });
+                    } catch { /* ignore */ }
                 }
                 return;
             }
@@ -555,6 +614,14 @@ export class NostrP2P {
                     await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
                 } else {
                     session.iceBuffer.push(payload.candidate);
+                }
+            } else if (payload.type === 'ice-candidates' && Array.isArray(payload.candidates)) {
+                for (const candidate of payload.candidates) {
+                    if (pc.remoteDescription?.type) {
+                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                    } else {
+                        session.iceBuffer.push(candidate);
+                    }
                 }
             }
         } catch (e) {
