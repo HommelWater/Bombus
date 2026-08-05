@@ -129,7 +129,7 @@ export class NostrP2P {
         this._subscribe();
         // Re-subscribe periodically: the initial subscription can race the
         // relay handshake, and relays drop subs.
-        this._listenTimer = setInterval(() => this._subscribe(), 20 * 1000);
+        this._listenTimer = setInterval(() => this._subscribe(), 20_000 + Math.random()*5_000);
         this._maintenanceTimer = setInterval(() => this._maintenance(), MAINTENANCE_INTERVAL);
         // Don't wait a full tick for the first connection attempts.
         setTimeout(() => this._maintenance(), 1000);
@@ -487,7 +487,7 @@ export class NostrP2P {
             if (this._sub) { try { this._sub.close(); } catch { /* ignore */ } }
             this._sub = this.pool.subscribeMany(
                 this.relays,
-                { kinds: [KIND_SIGNAL], '#p': [this.pk], since: Math.floor(Date.now() / 1000) - 300 },
+                { kinds: [KIND_SIGNAL], '#p': [this.pk], since: Math.floor(Date.now() / 1000) - 30 },
                 { onevent: (event) => this.handleSignal(event) }
             );
         } catch (e) {
@@ -546,10 +546,6 @@ export class NostrP2P {
             // ots identifies the handshake attempt (re-sends share it);
             // fall back to event time for peers on older builds.
             const offerTs = (payload.ots || event.created_at || 0) * 1000;
-            // Too old to be answerable: the offerer's handshake attempt times
-            // out anyway, so answering a replayed offer only breaks a healthy
-            // connection or wedges a stale one.
-            if (Date.now() - offerTs > PENDING_TIMEOUT) { log(`[p2p] ignore old offer from ${npub.slice(0, 12)}`); return; }
             if (this._lastOfferAt[npub] && offerTs <= this._lastOfferAt[npub]) {
                 // Duplicate/re-sent offer: if we're still answering it, our
                 // answer may have been lost – send it again.
@@ -563,6 +559,11 @@ export class NostrP2P {
                 return;
             }
             this._lastOfferAt[npub] = offerTs;
+
+            // Too old to be answerable: the offerer's handshake attempt times
+            // out anyway, so answering a replayed offer only breaks a healthy
+            // connection or wedges a stale one.
+            if (Date.now() - offerTs > PENDING_TIMEOUT) { log(`[p2p] ignore old offer from ${npub.slice(0, 12)}`); return; }
 
             if (session) {
                 if (session.phase === 'connected') {
